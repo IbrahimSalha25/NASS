@@ -101,9 +101,11 @@ class OcrEngine:
         image: Union[Image.Image, Path, str],
         language: str = "ara+eng",
         psm: int = 3,
+        oem: Optional[int] = None,
+        extra_config: str = "",
         page_number: int = 1,
     ) -> PageResult:
-        """استخراج النص من صورة وحساب نسبة الثقة والمدة الزمنية."""
+        """استخراج النص من صورة وحساب نسبة الثقة والمدة الزمنية مع دعم PSM وOEM والتهيئة المخصصة."""
         import pytesseract
         from pytesseract import Output
 
@@ -130,7 +132,12 @@ class OcrEngine:
             if pil_image.mode not in ("RGB", "L"):
                 pil_image = pil_image.convert("RGB")
 
-            custom_config = f"--psm {psm}"
+            config_parts = [f"--psm {psm}"]
+            if oem is not None:
+                config_parts.append(f"--oem {oem}")
+            if extra_config and extra_config.strip():
+                config_parts.append(extra_config.strip())
+            custom_config = " ".join(config_parts)
 
             actual_language = language
             if not self.is_language_available(language):

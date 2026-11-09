@@ -56,10 +56,16 @@ class ProcessingService:
             # تطبيق التحسينات الاختيارية
             processed_img = ImageProcessor.process(img, options)
 
+            # تحديد وضع تقسيم الصفحة
+            effective_psm = 4 if options.single_column else options.psm
+
             # تنفيذ OCR
             page_res = self.ocr_engine.extract_text(
                 image=processed_img,
                 language=options.language,
+                psm=effective_psm,
+                oem=options.oem,
+                extra_config=options.tesseract_config,
                 page_number=1,
             )
 
@@ -156,10 +162,15 @@ class ProcessingService:
                         page_img = PdfProcessor.render_page_to_image(fitz_page, dpi=options.dpi)
                         enhanced_img = ImageProcessor.process(page_img, options)
 
+                        effective_psm = 4 if options.single_column else options.psm
+
                         # تنفيذ OCR
                         page_result = self.ocr_engine.extract_text(
                             image=enhanced_img,
                             language=options.language,
+                            psm=effective_psm,
+                            oem=options.oem,
+                            extra_config=options.tesseract_config,
                             page_number=page_num,
                         )
 
