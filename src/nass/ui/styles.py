@@ -1,37 +1,49 @@
 """
 Visual design styles and QSS stylesheet for NASS.
-Unified modern design: Deep navy blue with calm purple accents and full RTL/LTR support.
+Unified modern design: Deep navy blue with vibrant logo-derived accents and full RTL/LTR support.
 """
 
 from __future__ import annotations
 
-COLOR_SIDEBAR_BG = "#0F172A"       # Deep night navy slate for sidebar
-COLOR_SIDEBAR_HOVER = "#1E293B"    # Hover effect for sidebar items
-COLOR_SIDEBAR_ACTIVE = "#1E3A8A"   # Active/selected sidebar item
-COLOR_SIDEBAR_TEXT = "#E2E8F0"     # High readability text
-COLOR_SIDEBAR_MUTED = "#94A3B8"
+# ==========================================
+# Official NASS Brand Color Palette & Tokens
+# (Extracted from assets/images/logo_NASS.png)
+# ==========================================
 
-COLOR_PRIMARY = "#1E40AF"          # Primary royal navy blue
-COLOR_PRIMARY_HOVER = "#1D4ED8"
-COLOR_PRIMARY_ACTIVE = "#172554"
+# Sidebar & Brand Anchors
+COLOR_SIDEBAR_BG = "#0A1931"       # Deep Brand Navy from Logo core
+COLOR_SIDEBAR_HOVER = "#15284F"    # Elevated Navy for hover states
+COLOR_SIDEBAR_ACTIVE = "#1E3A8A"   # Active/selected sidebar item background
+COLOR_SIDEBAR_TEXT = "#E2E8F0"     # High-contrast slate text
+COLOR_SIDEBAR_MUTED = "#94A3B8"    # Subtitle and secondary muted text
 
-COLOR_ACCENT = "#7C3AED"           # Soft purple accent
-COLOR_ACCENT_LIGHT = "#EDE9FE"
+# Primary Brand Actions & Focus
+COLOR_PRIMARY = "#2563EB"          # Vibrant logo blue for primary actions
+COLOR_PRIMARY_HOVER = "#1D4ED8"    # Darker blue on hover
+COLOR_PRIMARY_ACTIVE = "#1E40AF"   # Deep navy blue on press
 
-COLOR_BG = "#F8FAFC"               # Comfortable snow slate page background
+# Accents & Highlights
+COLOR_ACCENT = "#4F46E5"           # Indigo accent for active borders and badges
+COLOR_ACCENT_LIGHT = "#EEF2FF"     # Soft indigo wash for selection highlights
+
+# Backgrounds & Cards
+COLOR_BG = "#F8FAFC"               # Comfortable slate-white page background
 COLOR_CARD = "#FFFFFF"             # Crisp pure white cards
+COLOR_SURFACE_ELEVATED = "#F1F5F9" # Drop zone and elevated card surface
 COLOR_BORDER = "#E2E8F0"           # Light subtle border
-COLOR_BORDER_FOCUS = "#2563EB"
+COLOR_BORDER_FOCUS = "#2563EB"     # Focused input outline
 
-COLOR_TEXT = "#0F172A"             # Dark navy text
-COLOR_TEXT_MUTED = "#64748B"       # Secondary muted gray text
+# Typography
+COLOR_TEXT = "#0F172A"             # Dark navy primary text (AAA contrast)
+COLOR_TEXT_MUTED = "#475569"       # Secondary slate text (AA contrast)
 
-COLOR_SUCCESS = "#10B981"
-COLOR_SUCCESS_BG = "#ECFDF5"
-COLOR_WARNING = "#F59E0B"
-COLOR_WARNING_BG = "#FFFBEB"
-COLOR_ERROR = "#EF4444"
-COLOR_ERROR_BG = "#FEF2F2"
+# Status & Feedback
+COLOR_SUCCESS = "#059669"          # Emerald green for success
+COLOR_SUCCESS_BG = "#ECFDF5"       # Soft green tint
+COLOR_WARNING = "#D97706"          # Amber for warnings
+COLOR_WARNING_BG = "#FFFBEB"       # Soft amber tint
+COLOR_ERROR = "#DC2626"            # Red for errors
+COLOR_ERROR_BG = "#FEF2F2"         # Soft red tint
 
 
 def get_stylesheet(is_rtl: bool = True) -> str:
@@ -39,48 +51,53 @@ def get_stylesheet(is_rtl: bool = True) -> str:
     Generates application stylesheet tailored for RTL (Arabic) or LTR (English) layout.
     """
     sidebar_border = (
-        "border-left: 1px solid #1E293B; border-right: none;"
+        "border-left: 1px solid #15284F; border-right: none;"
         if is_rtl else
-        "border-right: 1px solid #1E293B; border-left: none;"
+        "border-right: 1px solid #15284F; border-left: none;"
     )
-    btn_align = "text-align: right;" if is_rtl else "text-align: left;"
     btn_active_border = (
         f"border-right: 4px solid {COLOR_ACCENT}; border-left: none;"
         if is_rtl else
         f"border-left: 4px solid {COLOR_ACCENT}; border-right: none;"
     )
 
+    from nass.core.config import ASSETS_DIR
+    chk_checked_path = (ASSETS_DIR / "icons" / "checkbox_checked.png").resolve().as_posix()
+    chk_hover_path = (ASSETS_DIR / "icons" / "checkbox_checked_hover.png").resolve().as_posix()
+    chk_disabled_path = (ASSETS_DIR / "icons" / "checkbox_checked_disabled.png").resolve().as_posix()
+
     return f"""
 /* Checkboxes & Radio Buttons */
 QCheckBox {{
     color: {COLOR_TEXT};
-    spacing: 8px;
+    spacing: 9px;
     font-size: 13px;
     font-weight: 500;
 }}
 
 QCheckBox::indicator {{
-    width: 18px;
-    height: 18px;
-    border-radius: 4px;
-    border: 2px solid #94A3B8;
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    border: 1.8px solid #94A3B8;
     background-color: #FFFFFF;
 }}
 
 QCheckBox::indicator:hover {{
     border-color: {COLOR_PRIMARY};
-    background-color: #F8FAFC;
+    background-color: #EFF6FF;
 }}
 
 QCheckBox::indicator:checked {{
-    border-color: {COLOR_PRIMARY};
-    background-color: {COLOR_PRIMARY};
-    image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'></polyline></svg>");
+    border: none;
+    background-color: transparent;
+    image: url("{chk_checked_path}");
 }}
 
 QCheckBox::indicator:checked:hover {{
-    border-color: {COLOR_PRIMARY_HOVER};
-    background-color: {COLOR_PRIMARY_HOVER};
+    border: none;
+    background-color: transparent;
+    image: url("{chk_hover_path}");
 }}
 
 QCheckBox::indicator:disabled {{
@@ -88,13 +105,20 @@ QCheckBox::indicator:disabled {{
     background-color: #F1F5F9;
 }}
 
+QCheckBox::indicator:checked:disabled {{
+    border: none;
+    background-color: transparent;
+    image: url("{chk_disabled_path}");
+}}
+
 /* Sidebar status card */
 QFrame#sidebarStatusCard {{
-    background-color: rgba(30, 41, 59, 0.7);
-    border: 1px solid rgba(51, 65, 85, 0.8);
+    background-color: rgba(21, 40, 79, 0.75);
+    border: 1px solid rgba(79, 70, 229, 0.35);
     border-radius: 8px;
     padding: 8px 10px;
 }}
+
 QWidget {{
     background-color: {COLOR_BG};
     color: {COLOR_TEXT};
@@ -224,15 +248,15 @@ QPushButton#primaryButton:disabled {{
 }}
 
 QPushButton#dangerButton {{
-    background-color: #EF4444;
+    background-color: {COLOR_ERROR};
     color: #FFFFFF;
-    border: 1px solid #DC2626;
+    border: 1px solid {COLOR_ERROR};
     font-weight: 500;
 }}
 
 QPushButton#dangerButton:hover {{
-    background-color: #DC2626;
-    border-color: #B91C1C;
+    background-color: #B91C1C;
+    border-color: #991B1B;
 }}
 
 QPushButton#dangerButton:disabled {{
@@ -251,7 +275,7 @@ QLineEdit, QTextEdit, QPlainTextEdit, QComboBox, QSpinBox {{
 }}
 
 QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QComboBox:focus, QSpinBox:focus {{
-    border-color: {COLOR_PRIMARY};
+    border-color: {COLOR_BORDER_FOCUS};
 }}
 
 QComboBox::drop-down {{
@@ -299,7 +323,7 @@ QTableWidget::item {{
 }}
 
 QTableWidget::item:selected {{
-    background-color: #EFF6FF;
+    background-color: {COLOR_ACCENT_LIGHT};
     color: {COLOR_PRIMARY};
 }}
 
