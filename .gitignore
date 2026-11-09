@@ -1,33 +1,45 @@
-# Virtual Environment
+# Virtual Environments
+.venv/
+venv/
+env/
 Lib/
 Scripts/
 pyvenv.cfg
-.venv/
-env/
-venv/
 
-# Python cache
+# Python Cache & Bytecode
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .pytest_cache/
-
-# IDEs and Editors
-.idea/
-.cursor/
-.vscode/
-
-# Build and distribution
-build/
-dist/
-*.egg-info/
-
-# Testing & coverage
 .coverage
 htmlcov/
 
-# Local outputs & logs
+# IDEs & Editors
+.idea/
+.cursor/
+.vscode/
+*.swp
+*.swo
+
+# Build & Distribution
+build/
+dist/
+*.egg-info/
+*.spec
+
+# Local Logs & Outputs
 output/
 temp/
 *.log
+*.tmp
+.write_test.tmp
+
+# Tesseract Traineddata (large binaries downloaded via app / package manager)
+tessdata/*.traineddata
+!tessdata/.gitkeep
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
