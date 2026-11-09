@@ -39,6 +39,7 @@ class PageResult:
     """بيانات نتيجة استخراج صفحة واحدة من مستند أو صورة."""
     page_number: int
     text: str = ""
+    equations: List[str] = field(default_factory=list)  # المعادلات الرياضية المستخرجة بصيغة LaTeX
     confidence: float = 0.0
     status: ProcessingStatus = ProcessingStatus.PENDING
     error_message: Optional[str] = None
@@ -65,6 +66,14 @@ class DocumentResult:
         return "\n\n--- [فاصل الصفحات] ---\n\n".join(page_texts)
 
     @property
+    def all_equations(self) -> List[str]:
+        """جمع كافة المعادلات الرياضية المستخرجة من المستند."""
+        eqs: List[str] = []
+        for p in self.pages:
+            eqs.extend(p.equations)
+        return eqs
+
+    @property
     def average_confidence(self) -> float:
         """حساب متوسط نسبة الثقة عبر الصفحات التي تحتوي نصاً وثقة صالحة."""
         valid_confidences = [
@@ -81,9 +90,16 @@ class OcrOptions:
     """خيارات وإعدادات تنفيذ OCR."""
     language: str = OcrLanguage.ARABIC_AND_ENGLISH.value
     apply_enhancement: bool = False
+    grayscale: bool = False
     enhance_contrast: bool = False
     denoise: bool = False
     threshold: bool = False
     deskew: bool = False
+    single_column: bool = False
     dpi: int = 300
+    psm: int = 3  # وضع تقسيم الصفحة (Page Segmentation Mode)
+    oem: int = 3  # وضع محرك التعرف (OCR Engine Mode)
+    tesseract_config: str = ""  # معلمات إضافية مخصصة لـ Tesseract
     extract_embedded_first: bool = True  # محاولة استخراج النص المضمن في PDF أولاً
+    extract_math: bool = False  # استخراج المعادلات الرياضية عبر المحرك الرياضي
+    math_engine: str = "pix2tex"  # اسم محرك المعادلات المستخدم

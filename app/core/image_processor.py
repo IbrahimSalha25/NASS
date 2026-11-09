@@ -110,13 +110,14 @@ class ImageProcessor:
     @classmethod
     def process(cls, image: Image.Image, options: OcrOptions) -> Image.Image:
         """تطبيق سلسلة التحسينات المختارة."""
-        if not options.apply_enhancement:
+        if not options.apply_enhancement and not options.grayscale:
             return image
 
         result = image
         try:
             if (
-                options.threshold
+                options.grayscale
+                or options.threshold
                 or options.enhance_contrast
                 or options.denoise
                 or options.deskew
