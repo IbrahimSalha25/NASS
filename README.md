@@ -1,139 +1,155 @@
-# نَصّ | NASS — Smart OCR Desktop Application
+<div align="center">
 
-**من الصورة إلى النص — تطبيق سطح مكتب ذكي ومحلي لاستخراج النصوص والمعادلات الرياضية بدقة وأمان.**
+<img src="assets/images/logo_NASS.png" alt="NASS Logo" width="128" height="128" />
 
-تطبيق **نَصّ (NASS)** مبني بلغة Python وإطار PySide6، ويعتمد على محرك Tesseract OCR عبر Pytesseract، بالإضافة إلى نظام مستقل للتعرف على المعادلات الرياضية وتحويلها إلى LaTeX. يعمل التطبيق محلياً بنسبة 100% دون الحاجة إلى إنترنت بعد تثبيت المتطلبات، مما يضمن الخصوصية التامة لبياناتك ومستنداتك.
+# نَصّ | NASS
+### Smart Document Text Extraction & Local OCR Desktop Application
+**«حيث تتحول الصور إلى كلمات.»** *(Where images become words.)*
 
----
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
+[![GUI](https://img.shields.io/badge/GUI-PySide6%20%28Qt6%29-1e40af.svg)](https://www.qt.io/)
+[![OCR Engine](https://img.shields.io/badge/OCR-Tesseract%205.x-7c3aed.svg)](https://github.com/tesseract-ocr/tesseract)
+[![Tests](https://img.shields.io/badge/tests-55%20passed-10b981.svg)](tests/)
+[![Offline First](https://img.shields.io/badge/Privacy-100%25%20Local%20%26%20Offline-059669.svg)](docs/ARCHITECTURE.md)
 
-## المزايا الرئيسية
+[**العربية (Arabic README)**](README.ar.md) • [**Architecture**](docs/ARCHITECTURE.md) • [**Supported Formats**](docs/SUPPORTED_FORMATS.md) • [**Installation Guide**](docs/INSTALLATION.md) • [**Contributing**](CONTRIBUTING.md)
 
-### 1. إدارة ذكية لمحرك Tesseract OCR
-- **كشف تلقائي وفحص شامل:** التحقق من وجود ملف `tesseract.exe`، إصدار المحرك، ومسارات التثبيت.
-- **تحديد مسار مخصص يدوياً:** إمكانية اختيار مسار المحرك من القرص مع التحقق الفوري من سلامته.
-- **إعادة الاكتشاف التلقائي:** زر لإعادة ضبط المسارات والاعتماد على متغيرات بيئة النظام.
-- **إرشادات التثبيت المعتمدة:** روابط رسمية لمثبت Windows (UB-Mannheim) وأوامر التثبيت على Linux وmacOS مع إمكانية تشغيل ملف المثبت بموافقة المستخدم.
-
-### 2. إدارة حزم اللغات (Language Pack Manager)
-- **استعراض اللغات المثبتة:** عرض اسم كل لغة بالعربية ورمزها وحجمها على القرص، مع إمكانية حذف أي لغة بعد تأكيد المستخدم.
-- **كتالوج التنزيل المباشر:** تصفح والبحث في حزم اللغات المتاحة من مستودع `tessdata_fast` الرسمي وتنزيلها مباشرة داخل التطبيق مع شريط تقدم ومعالجة انقطاع الاتصال.
-- **دعم النصوص متعددة اللغات:** إمكانية معالجة المستندات بلغة واحدة أو لغات مركبة مثل `ara+eng`.
-
-### 3. استخراج المعادلات الرياضية (LaTeX)
-- **نظام رياضي منفصل واختياري:** لا يؤثر على سرعة أو استقرار OCR العادي.
-- **مكتشف مدمج ذكي:** يتعرف على الكسور، الجذور، الأسس، الرموز الإغريقية، والتكاملات والمجاميع ويحولها إلى صيغة LaTeX منسقة.
-- **قابلية التوسع:** واجهة مهيأة لدعم محرك التعلم العميق `pix2tex`.
-- **نسخ وتصدير المعادلات:** إمكانية نسخ كود LaTeX أو تصديره إلى ملف `.tex` مخصص.
-
-### 4. سير عمل ميسّر مخصص لملف واحد
-- التركيز على معالجة **ملف واحد في كل عملية** لتحقيق أعلى دقة وسرعة واستقرار.
-- **معالجة متتابعة لملفات PDF متعددة الصفحات:** عرض رقم الصفحة الحالية وإجمالي الصفحات دون استهلاك مفرط للذاكرة.
-- **معاينة بصرية للصفحة الأصلية:** إمكانية معاينة صورة الصفحة ومقارنتها مباشرة مع النص المستخرج.
-- **إحصائيات دقيقة:** حساب عدد الصفحات، الكلمات، الحروف، ومتوسط الثقة التقريبي مع تحذيرات في حال كانت الدقة منخفضة.
-
-### 5. واجهة مستخدم عربية حديثة واحترافية (UI/UX)
-- اتجاه RTL أصيل لكافة عناصر وواجهات التطبيق.
-- لوحة ألوان متناسقة وموحدة (أزرق كحلي ملكي داكن مع لمسات بنفسجية هادئة) بدون تشتيت.
-- شريط جانبي فاخر (الرئيسية، استخراج النصوص، سجل العمليات، إعدادات OCR، إعدادات التطبيق، حول التطبيق).
-- أيقونات متجهة احترافية خالية تماماً من الإيموجي.
-- معالجة غير متزامنة عبر `QThread` تمنع تجمد الواجهة نهائياً مع دعم الإلغاء الآمن.
-
-### 6. تصدير مرن واحترافي
-- **TXT:** ملف نصي نقي بترميز UTF-8 مع فواصل صفحات منظمة.
-- **Word (DOCX):** مستند منسق مع محاذاة الفقرات العربية إلى اليمين (RTL).
-- **LaTeX (.tex):** تصدير المعادلات الرياضية المستخرجة في مستند قابل للتضمين المباشر.
+</div>
 
 ---
 
-## متطلبات التشغيل
+## 🌟 Overview
 
-- **Python:** الإصدار 3.11 أو أحدث (تم الاختبار على Python 3.12.2).
-- **Tesseract OCR:** مثبت على الجهاز (الإصدار 5.0 أو أحدث موصى به).
-- **حزم اللغات:** `ara.traineddata` و `eng.traineddata` داخل مجلد `tessdata`.
+**نَصّ (NASS)** is a modern, local-first desktop application designed for high-precision text extraction and optical character recognition (OCR) across a diverse spectrum of document formats. Built with Python 3.12 and PySide6 (Qt for Python), NASS features a clean Right-to-Left (RTL) Arabic user interface, real-time extraction metrics, and advanced pre-processing filters.
+
+NASS adheres strictly to the **Native-First, Offline-Always** philosophy:
+- **Zero Data Leakage:** All OCR and extraction runs 100% locally on your machine without third-party APIs or remote telemetry.
+- **Native Text Priority:** Automatically extracts lossless embedded digital text from PDF, Word, Excel, and presentations, invoking OCR only when digital text is absent or for scanned images.
 
 ---
 
-## التثبيت والتشغيل
+## ✨ Key Features
 
-### 1. إعداد البيئة الافتراضية
+- **Multi-Format Document Extraction Suite:**
+  - 🖼️ **Images:** High-accuracy OCR for `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, and `.tiff`.
+  - 📄 **PDF Documents:** Intelligent hybrid processing (extracts digital vector text first; automatically rasterizes scanned pages for OCR).
+  - 📝 **Microsoft Office:** Native text extraction from Word (`.docx`), Excel spreadsheets (`.xlsx`, `.xls`, `.csv`), and PowerPoint presentations (`.pptx`).
+  - 📑 **Plain Text & Markdown:** Encoding-aware reading (`.txt`, `.md`, `.rtf`) with RTF control code stripping.
+  - 🌐 **Web & Markup:** Semantic extraction from HTML (`.html`, `.htm`) and XML (`.xml`) ignoring scripts and styling.
+  - 🗄️ **Structured Data & OpenDocument:** Formatted key-value tree extraction for `.json`, plus native archive extraction for `.odt`, `.ods`, `.odp`, and `.epub`.
+- **Integrated Mathematical Formula Recognition (LaTeX):**
+  - Built-in algebraic and symbol detector converting fractions, roots, Greek letters, and exponents into standard LaTeX syntax (`$$...$$`).
+- **Comprehensive OCR Engine & Language Management:**
+  - Automatic detection of Tesseract executable paths on Windows and Unix systems.
+  - In-app Language Pack Downloader: browse, search, download, and verify language packages directly from official `tessdata_fast` releases.
+  - Full support for multi-language recognition (`ara+eng`).
+- **Advanced Pre-processing Filters:**
+  - Page Segmentation Mode (PSM) and OCR Engine Mode (OEM) controls.
+  - Grayscale conversion, Otsu-style thresholding, contrast enhancement, denoising, and automated deskewing.
+- **Multi-Format Results Export:**
+  - Plain Text (`.txt`): Clean UTF-8 encoded files with optional page delimiters.
+  - Microsoft Word (`.docx`): Formatted Word documents with Right-to-Left paragraph alignment and page dividers.
+  - LaTeX (`.tex`): Formatted scientific documents with `amsmath` package support.
+- **Modern User Experience:**
+  - Unified theme: Deep Navy (`#0F172A`), Royal Blue (`#1E40AF`), and Soft Purple (`#7C3AED`).
+  - Friendly Arabic microcopy across all processing stages.
+  - Right-docked navigation sidebar with persistent active states.
 
+---
+
+## 📂 Supported Formats Summary
+
+| Category | Extensions | Extraction Method |
+|---|---|---|
+| **Images** | `.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tiff` | Local OCR (Tesseract + Preprocessing) |
+| **PDF** | `.pdf` | Hybrid (Native Text First, OCR Fallback) |
+| **Word** | `.docx` | Native Document Parsing |
+| **Excel & Data** | `.xlsx`, `.xls`, `.csv` | Native Multi-Sheet Tabular Parsing |
+| **PowerPoint** | `.pptx` | Native Presentation & Slide Parsing |
+| **Plain Text** | `.txt`, `.md`, `.rtf` | Native Text (Multi-Encoding Auto-Detect) |
+| **Web & Markup** | `.html`, `.htm`, `.xml` | Native Markup Parsing (Strips Scripts/Styles) |
+| **JSON** | `.json` | Native Structured Tree Extraction |
+| **OpenDocument & eBooks** | `.odt`, `.ods`, `.odp`, `.epub` | Native Archive & Chapter Parsing |
+
+*See [docs/SUPPORTED_FORMATS.md](docs/SUPPORTED_FORMATS.md) for technical specifications.*
+
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+- Python 3.11+
+- Tesseract OCR 5.x ([UB-Mannheim Windows Installer](https://github.com/UB-Mannheim/tesseract/wiki))
+
+### 2. Installation
 ```bash
-# إنشاء البيئة الافتراضية
+# Clone the repository
+git clone https://github.com/IbrahimSalha25/NASS.git
+cd NASS
+
+# Create and activate virtual environment
 python -m venv .venv
+.\.venv\Scripts\activate   # On Windows
+# source .venv/bin/activate  # On Linux / macOS
 
-# تفعيل البيئة (Windows)
-.venv\Scripts\activate
-
-# تفعيل البيئة (Linux / macOS)
-source .venv/bin/activate
-```
-
-### 2. تثبيت الحزم المطلوبة
-
-```bash
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 3. تشغيل التطبيق
-
+### 3. Launch Application
 ```bash
 python main.py
 ```
 
+*For comprehensive platform guides, see [docs/INSTALLATION.md](docs/INSTALLATION.md).*
+
 ---
 
-## تشغيل الاختبارات الآلية
+## 🧪 Testing
 
-يحتوي المشروع على جناح اختبارات متكامل يغطي 44 اختبار فحص آلي:
+NASS includes a comprehensive automated test suite covering all extractors, OCR integration scenarios, language management, settings persistence, and GUI sanity:
 
 ```bash
 pytest tests
 ```
+*Current test suite status: **55 passed in ~12 seconds**.*
 
 ---
 
-## هيكل المشروع
+## 🏛️ System Architecture
 
-```text
-nass/
-├── main.py                     # نقطة انطلاق التطبيق
-├── requirements.txt            # المكتبات والاعتماديات
-├── logo_NASS.png               # شعار التطبيق
-├── tessdata/                   # مجلد حزم اللغات المحلي
-├── app/
-│   ├── config.py               # المسارات واكتشاف Tesseract
-│   ├── core/                   # المنطق والنواة الأساسية
-│   │   ├── tesseract_manager.py # إدارة محرك Tesseract والتثبيت
-│   │   ├── language_manager.py  # إدارة وتنزيل حزم اللغات
-│   │   ├── math_engine.py       # محرك استخراج المعادلات الرياضية
-│   │   ├── settings_manager.py  # إدارة وحفظ الإعدادات محلياً
-│   │   ├── ocr_engine.py        # محرك التعرف واستدعاء pytesseract
-│   │   ├── pdf_processor.py     # معالجة PDF عبر PyMuPDF
-│   │   ├── image_processor.py   # تحسين الصور (OpenCV & PIL)
-│   │   ├── file_manager.py      # التحقق من سلامة وصيغ الملفات
-│   │   └── models.py            # هياكل وكائنات البيانات
-│   ├── services/
-│   │   ├── processing_service.py # تنسيق سير عمل المعالجة
-│   │   └── export_service.py     # تصدير النتائج (TXT, DOCX, LaTeX)
-│   ├── workers/
-│   │   └── ocr_worker.py        # معالجة في الخلفية مع إشارات Qt
-│   ├── ui/
-│   │   ├── styles.py            # قوالب التصميم ولوحة الألوان
-│   │   ├── icons.py             # أيقونات متجهة نقية
-│   │   ├── main_window.py       # النافذة الرئيسية والتنقل
-│   │   ├── components/
-│   │   │   └── sidebar.py       # الشريط الجانبي
-│   │   └── views/
-│   │       ├── home_view.py         # الشاشة الرئيسية
-│   │       ├── extract_view.py      # شاشة استخراج النصوص والنتائج
-│   │       ├── history_view.py      # سجل العمليات
-│   │       ├── ocr_settings_view.py # شاشة إعدادات OCR واللغات
-│   │       ├── app_settings_view.py # إعدادات التطبيق العامة
-│   │       └── about_view.py        # حول التطبيق
-└── tests/                      # 44 اختبار فحص آلي
+```mermaid
+graph TD
+    UI["PySide6 GUI (RTL)<br/>MainWindow, Sidebar, Views"]
+    Worker["QThread Worker<br/>Non-blocking Concurrency"]
+    Engine["DocumentEngine<br/>Central Dispatcher & Registry"]
+    Extractors["Extractors<br/>Word, Excel, PPTX, Text, Markup, OpenDoc"]
+    OCR["OCR & Math Engines<br/>Tesseract 5.x + MathParser"]
+
+    UI --> Worker
+    Worker --> Engine
+    Engine --> Extractors
+    Engine --> OCR
 ```
 
+*For in-depth architectural diagrams and class structures, consult [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).*
+
 ---
 
-## الترخيص والخصوصية
-تطبيق **نَصّ | NASS** مرخص ومصمم ليعمل محلياً بالكامل؛ لا تُرسل أي بيانات إلى الإنترنت، وتبقى جميع ملفاتك ومستنداتك على جهازك بأمان تام.
+## 👨‍💻 Developer & Attribution
+
+**نَصّ | NASS** is designed and developed by:
+
+- **Ibrahim Salha (إبراهيم صالحة)**
+- Intelligent Systems & Computer Engineering Student
+- Passionate about Artificial Intelligence, Computer Vision, Software Architecture, and open-source software empowering Arabic users.
+- **GitHub:** [@IbrahimSalha25](https://github.com/IbrahimSalha25)
+- **Email:** [ibrahim.salha19@gmail.com](mailto:ibrahim.salha19@gmail.com)
+
+---
+
+## 📄 License
+
+This project is open-source software licensed under the **[MIT License](LICENSE)**.
+Copyright © 2026 Ibrahim Salha. All rights reserved.
