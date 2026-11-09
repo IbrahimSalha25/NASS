@@ -1,7 +1,7 @@
 """
 Main application window for NASS.
-Implements the multi-page stack, right-hand sidebar navigation, RTL layout,
-and cohesive Deep Navy / Royal Blue styling.
+Implements the multi-page stack, responsive navigation, drag & drop support,
+and bilingual (Arabic/English) layout orchestration.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QCloseEvent, QIcon
+from PySide6.QtGui import QCloseEvent, QDragEnterEvent, QDragMoveEvent, QDropEvent, QIcon
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -20,11 +20,12 @@ from PySide6.QtWidgets import (
 )
 
 from nass.core.config import APP_NAME, APP_VERSION, ASSETS_DIR, PROJECT_ROOT
+from nass.core.i18n import I18n, tr
 from nass.core.models import DocumentResult
 from nass.core.settings import SettingsManager
 from nass.engines.ocr.tesseract_manager import TesseractManager
 from nass.ui.components.sidebar import SidebarWidget
-from nass.ui.styles import APP_STYLESHEET
+from nass.ui.styles import get_stylesheet
 from nass.ui.views.about_view import AboutView
 from nass.ui.views.app_settings_view import AppSettingsView
 from nass.ui.views.extract_view import ExtractView
@@ -45,13 +46,12 @@ class MainWindow(QMainWindow):
         self.settings = SettingsManager.get_instance()
         self.tess_mgr = TesseractManager()
 
-        self.setWindowTitle(f"{APP_NAME} — Smart Document & OCR Extractor (v{APP_VERSION})")
-        
+        self.setAcceptDrops(True)
+
         width = self.settings.get("window_width", 1200)
         height = self.settings.get("window_height", 800)
         self.resize(width, height)
         self.setMinimumSize(980, 640)
-        self.setLayoutDirection(Qt.RightToLeft)
 
         # Set application window icon
         logo_path = ASSETS_DIR / "images" / "logo_NASS.png"
@@ -62,21 +62,25 @@ class MainWindow(QMainWindow):
 
         self._init_ui()
         self._connect_signals()
-        self.setStyleSheet(APP_STYLESHEET)
+
+        initial_lang = self.settings.get("app_language", "ar")
+        self.apply_language(initial_lang)
+
         logger.info("MainWindow initialized successfully.")
 
     def _init_ui(self) -> None:
-        """Constructs UI layout: right sidebar and stacked view container."""
+        """Constructs UI layout: sidebar and stacked view container."""
         central_widget = QWidget(self)
+        central_widget.setAcceptDrops(True)
         self.setCentralWidget(central_widget)
 
-        root_layout = QHBoxLayout(central_widget)
-        root_layout.setContentsMargins(0, 0, 0, 0)
-        root_layout.setSpacing(0)
+        self.root_layout = QHBoxLayout(central_widget)
+        self.root_layout.setContentsMargins(0, 0, 0, 0)
+        self.root_layout.setSpacing(0)
 
-        # 1. Right Sidebar (first in RTL puts it on the right)
+        # 1. Navigation Sidebar
         self.sidebar = SidebarWidget(self)
-        root_layout.addWidget(self.sidebar)
+        self.root_layout.addWidget(self.sidebar)
 
         # 2. Main content stack
         self.stack = QStackedWidget(self)
@@ -105,7 +109,7 @@ class MainWindow(QMainWindow):
         self.about_view = AboutView(self)
         self.stack.addWidget(self.about_view)
 
-        root_layout.addWidget(self.stack, stretch=1)
+        self.root_layout.addWidget(self.stack, stretch=1)
 
     def _connect_signals(self) -> None:
         """Connects signals across sidebar and views."""
@@ -120,9 +124,45 @@ class MainWindow(QMainWindow):
         self.extract_view.change_file_requested.connect(self._select_new_file)
         self.extract_view.btn_start.clicked.connect(self._bind_worker_to_history)
 
-        # Settings synchronization
+        # History view re-scan
+        self.history_view.rescan_requested.connect(self._on_file_selected_from_home)
+
+        # Settings synchronization & language switching
         self.ocr_settings_view.settings_updated.connect(self._on_settings_updated)
         self.app_settings_view.settings_changed.connect(self._on_settings_updated)
+        self.app_settings_view.language_changed.connect(self.apply_language)
+
+    def apply_language(self, lang_code: str) -> None:
+        """
+        Dynamically applies application language, layout direction (RTL/LTR),
+        stylesheets, and triggers retranslation on child views.
+        """
+        I18n.set_current_language(lang_code)
+        is_rtl = I18n.is_rtl()
+        direction = Qt.RightToLeft if is_rtl else Qt.LeftToRight
+
+        self.setLayoutDirection(direction)
+        if self.centralWidget():
+            self.centralWidget().setLayoutDirection(direction)
+
+        # Apply customized stylesheet matching orientation
+        self.setStyleSheet(get_stylesheet(is_rtl=is_rtl))
+
+        # Update window title
+        app_title = tr("app_name")
+        self.setWindowTitle(f"{app_title} — {tr('app_title_full')} (v{APP_VERSION})")
+
+        # Retranslate all views
+        if hasattr(self, "sidebar"):
+            self.sidebar.retranslate_ui()
+        if hasattr(self, "home_view"):
+            self.home_view.retranslate_ui()
+        if hasattr(self, "extract_view"):
+            self.extract_view.retranslate_ui()
+        if hasattr(self, "history_view"):
+            self.history_view.retranslate_ui()
+        if hasattr(self, "app_settings_view"):
+            self.app_settings_view.retranslate_ui()
 
     def switch_page(self, page_index: int) -> None:
         """
@@ -142,21 +182,21 @@ class MainWindow(QMainWindow):
     def _select_new_file(self) -> None:
         """Opens native file chooser for all supported document types."""
         filters = (
-            "جميع الملفات المدعومة (*.pdf *.png *.jpg *.jpeg *.tiff *.tif *.bmp *.webp "
+            "All Supported Files (*.pdf *.png *.jpg *.jpeg *.tiff *.tif *.bmp *.webp "
             "*.docx *.xlsx *.xls *.csv *.pptx *.txt *.md *.rtf *.html *.htm *.xml *.json *.odt *.epub);;"
-            "مستندات PDF (*.pdf);;"
-            "ملفات الصور (*.png *.jpg *.jpeg *.tiff *.tif *.bmp *.webp);;"
-            "مستندات Word (*.docx);;"
-            "جداول Excel وبيانات (*.xlsx *.xls *.csv);;"
-            "عروض PowerPoint (*.pptx);;"
-            "ملفات نصية وماركداون (*.txt *.md *.rtf);;"
-            "ملفات ويب وبرمجة (*.html *.htm *.xml *.json);;"
-            "مستندات مفتوحة وكتب (*.odt *.epub);;"
-            "جميع الملفات (*.*)"
+            "PDF Documents (*.pdf);;"
+            "Images (*.png *.jpg *.jpeg *.tiff *.tif *.bmp *.webp);;"
+            "Word Documents (*.docx);;"
+            "Excel Spreadsheets (*.xlsx *.xls *.csv);;"
+            "PowerPoint Presentations (*.pptx);;"
+            "Text & Markdown (*.txt *.md *.rtf);;"
+            "Web & Markup (*.html *.htm *.xml *.json);;"
+            "OpenDocument & eBooks (*.odt *.epub);;"
+            "All Files (*.*)"
         )
         file_path_str, _ = QFileDialog.getOpenFileName(
             self,
-            "اختيار ملف للاستخراج",
+            tr("extract_btn_browse"),
             "",
             filters,
         )
@@ -180,6 +220,23 @@ class MainWindow(QMainWindow):
     def _on_settings_updated(self) -> None:
         """Synchronizes status across views after settings change."""
         self.ocr_settings_view.refresh_all_data()
+
+    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dragMoveEvent(self, event: QDragMoveEvent) -> None:
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event: QDropEvent) -> None:
+        urls = event.mimeData().urls()
+        if urls:
+            path = Path(urls[0].toLocalFile()).resolve()
+            valid, _ = FileUtils.is_valid_file(path)
+            if valid:
+                self._on_file_selected_from_home(path)
+                event.acceptProposedAction()
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """Saves window size on close if preference enabled."""
