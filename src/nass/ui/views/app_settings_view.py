@@ -1,7 +1,7 @@
 """
 General application settings view for NASS.
 Provides configuration options for application language (Arabic/English),
-export defaults, window persistence, and factory reset.
+history retention limit (default 50 files), export defaults, window persistence, and factory reset.
 """
 
 from __future__ import annotations
@@ -18,6 +18,8 @@ from PySide6.QtWidgets import (
     QLabel,
     QMessageBox,
     QPushButton,
+    QScrollArea,
+    QSpinBox,
     QVBoxLayout,
     QWidget,
 )
@@ -28,7 +30,7 @@ from nass.core.settings import SettingsManager
 
 class AppSettingsView(QWidget):
     """
-    View managing general application settings, language preference, default export formats.
+    View managing general application settings, language preference, history limits, and defaults.
     """
 
     settings_changed = Signal()
@@ -40,31 +42,41 @@ class AppSettingsView(QWidget):
         self._init_ui()
 
     def _init_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 16, 20, 16)
-        layout.setSpacing(14)
+        outer_layout = QVBoxLayout(self)
+        outer_layout.setContentsMargins(14, 12, 14, 12)
+        outer_layout.setSpacing(10)
 
         # Header bar
         header = QFrame()
         header.setObjectName("cardFrame")
         h_layout = QHBoxLayout(header)
-        h_layout.setContentsMargins(16, 12, 16, 12)
+        h_layout.setContentsMargins(14, 10, 14, 10)
 
         title_box = QVBoxLayout()
         title_box.setSpacing(2)
         self.lbl_title = QLabel(tr("settings_title"))
-        self.lbl_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #0F172A;")
+        self.lbl_title.setStyleSheet("font-size: 15px; font-weight: bold; color: #0F172A;")
         self.lbl_desc = QLabel(tr("settings_desc"))
         self.lbl_desc.setStyleSheet("font-size: 12px; color: #64748B;")
         title_box.addWidget(self.lbl_title)
         title_box.addWidget(self.lbl_desc)
         h_layout.addLayout(title_box)
-        layout.addWidget(header)
+        outer_layout.addWidget(header)
+
+        # Scrollable container for settings groups
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QFrame.NoFrame)
+
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(4, 4, 4, 4)
+        layout.setSpacing(12)
 
         # 1. Application Language Group
         self.grp_lang = QGroupBox(tr("settings_grp_language"))
         gl_layout = QVBoxLayout(self.grp_lang)
-        gl_layout.setSpacing(10)
+        gl_layout.setSpacing(8)
 
         lang_row = QHBoxLayout()
         self.lbl_lang = QLabel(tr("settings_lbl_language"))
@@ -83,10 +95,35 @@ class AppSettingsView(QWidget):
         gl_layout.addLayout(lang_row)
         layout.addWidget(self.grp_lang)
 
-        # 2. Export options group
+        # 2. History & Archiving Group
+        self.grp_history = QGroupBox(tr("nav_history"))
+        gh_layout = QVBoxLayout(self.grp_history)
+        gh_layout.setSpacing(8)
+
+        hist_row = QHBoxLayout()
+        self.lbl_max_history = QLabel(tr("settings_lbl_max_history"))
+        self.lbl_max_history.setStyleSheet("font-size: 13px; font-weight: 500;")
+        self.spin_max_history = QSpinBox()
+        self.spin_max_history.setRange(5, 500)
+        self.spin_max_history.setSingleStep(5)
+        self.spin_max_history.setValue(self.settings.get("max_history_records", 50))
+        self.spin_max_history.setFixedWidth(100)
+        self.spin_max_history.setFixedHeight(30)
+
+        hist_row.addWidget(self.lbl_max_history)
+        hist_row.addWidget(self.spin_max_history)
+        hist_row.addStretch()
+        gh_layout.addLayout(hist_row)
+
+        self.lbl_max_history_desc = QLabel(tr("settings_desc_max_history"))
+        self.lbl_max_history_desc.setStyleSheet("font-size: 11px; color: #64748B;")
+        gh_layout.addWidget(self.lbl_max_history_desc)
+        layout.addWidget(self.grp_history)
+
+        # 3. Export options group
         self.grp_export = QGroupBox(tr("settings_grp_export"))
         ge_layout = QVBoxLayout(self.grp_export)
-        ge_layout.setSpacing(12)
+        ge_layout.setSpacing(10)
 
         fmt_row = QHBoxLayout()
         self.lbl_fmt = QLabel(tr("settings_lbl_export_fmt"))
@@ -111,10 +148,10 @@ class AppSettingsView(QWidget):
 
         layout.addWidget(self.grp_export)
 
-        # 3. Window and UI preferences group
+        # 4. Window and UI preferences group
         self.grp_ui = QGroupBox(tr("settings_grp_ui"))
         gu_layout = QVBoxLayout(self.grp_ui)
-        gu_layout.setSpacing(10)
+        gu_layout.setSpacing(8)
 
         self.chk_remember_size = QCheckBox(tr("settings_chk_remember_size"))
         self.chk_remember_size.setChecked(self.settings.get("remember_window_size", True))
@@ -122,16 +159,19 @@ class AppSettingsView(QWidget):
 
         layout.addWidget(self.grp_ui)
 
-        # 4. Action buttons bar
+        # 5. Action buttons bar
         btn_bar = QHBoxLayout()
+        btn_bar.setSpacing(8)
         self.btn_save = QPushButton(tr("settings_btn_save"))
         self.btn_save.setObjectName("primaryButton")
         self.btn_save.setCursor(Qt.PointingHandCursor)
+        self.btn_save.setFixedHeight(34)
         self.btn_save.clicked.connect(self._save_settings)
 
         self.btn_reset_all = QPushButton(tr("settings_btn_reset"))
         self.btn_reset_all.setObjectName("dangerButton")
         self.btn_reset_all.setCursor(Qt.PointingHandCursor)
+        self.btn_reset_all.setFixedHeight(34)
         self.btn_reset_all.clicked.connect(self._reset_all_settings)
 
         btn_bar.addWidget(self.btn_save)
@@ -140,6 +180,8 @@ class AppSettingsView(QWidget):
         layout.addLayout(btn_bar)
 
         layout.addStretch()
+        scroll_area.setWidget(container)
+        outer_layout.addWidget(scroll_area)
 
     def retranslate_ui(self) -> None:
         """Retranslates labels and headers for current application language."""
@@ -150,6 +192,9 @@ class AppSettingsView(QWidget):
         self.lbl_desc.setText(tr("settings_desc"))
         self.grp_lang.setTitle(tr("settings_grp_language"))
         self.lbl_lang.setText(tr("settings_lbl_language"))
+        self.grp_history.setTitle(tr("nav_history"))
+        self.lbl_max_history.setText(tr("settings_lbl_max_history"))
+        self.lbl_max_history_desc.setText(tr("settings_desc_max_history"))
         self.grp_export.setTitle(tr("settings_grp_export"))
         self.lbl_fmt.setText(tr("settings_lbl_export_fmt"))
         self.chk_extract_embedded.setText(tr("settings_chk_embedded"))
@@ -164,6 +209,7 @@ class AppSettingsView(QWidget):
         new_lang = self.combo_lang.currentData()
 
         self.settings.set("app_language", new_lang, auto_save=False)
+        self.settings.set("max_history_records", self.spin_max_history.value(), auto_save=False)
         self.settings.set("export_default_format", self.combo_export_fmt.currentData(), auto_save=False)
         self.settings.set("extract_embedded_first", self.chk_extract_embedded.isChecked(), auto_save=False)
         self.settings.set("remember_window_size", self.chk_remember_size.isChecked(), auto_save=True)
@@ -193,6 +239,7 @@ class AppSettingsView(QWidget):
         if reply == QMessageBox.Yes:
             self.settings.reset_to_defaults()
             self.combo_lang.setCurrentIndex(0)
+            self.spin_max_history.setValue(50)
             self.combo_export_fmt.setCurrentIndex(0)
             self.chk_extract_embedded.setChecked(True)
             self.chk_remember_size.setChecked(True)

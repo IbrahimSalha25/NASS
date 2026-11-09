@@ -91,7 +91,7 @@ class SidebarWidget(QFrame):
             btn.setIcon(icon)
             btn.setCursor(Qt.PointingHandCursor)
             self.btn_group.addButton(btn, idx)
-            layout.addWidget(btn)
+            layout.addWidget(btn , alignment= Alignment.shrinkToFit)
             self.buttons.append(btn)
 
         self.buttons[0].setChecked(True)

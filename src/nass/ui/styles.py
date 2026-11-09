@@ -59,6 +59,11 @@ QWidget {{
     font-size: 13px;
 }}
 
+/* Ensure all labels have transparent background to prevent color patch artifacts */
+QLabel {{
+    background-color: transparent;
+}}
+
 QMainWindow {{
     background-color: {COLOR_BG};
 }}
@@ -87,12 +92,10 @@ QPushButton#sidebarButton {{
     background-color: transparent;
     color: {COLOR_SIDEBAR_TEXT};
     border: none;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 13px;
-    font-weight: 500;
-    {btn_align}
-    margin: 2px 6px;
+    border-radius: 0px;
+    padding: 0px;
+    margin: 1px 0px;
+    width: 100%;
 }}
 
 QPushButton#sidebarButton:hover {{
@@ -112,14 +115,14 @@ QFrame#cardFrame {{
     background-color: {COLOR_CARD};
     border: 1px solid {COLOR_BORDER};
     border-radius: 10px;
-    padding: 16px;
+    padding: 12px 14px;
 }}
 
 QFrame#statCard {{
     background-color: {COLOR_CARD};
     border: 1px solid {COLOR_BORDER};
     border-radius: 8px;
-    padding: 12px;
+    padding: 10px 12px;
 }}
 
 /* Drag & Drop Zone */
@@ -127,7 +130,7 @@ QFrame#dropZone {{
     background-color: {COLOR_CARD};
     border: 2px dashed #CBD5E1;
     border-radius: 12px;
-    padding: 28px;
+    padding: 20px 24px;
 }}
 
 QFrame#dropZone:hover, QFrame#dropZone[dragOver="true"] {{
@@ -141,7 +144,7 @@ QPushButton {{
     color: {COLOR_TEXT};
     border: 1px solid {COLOR_BORDER};
     border-radius: 6px;
-    padding: 8px 16px;
+    padding: 6px 12px;
     font-weight: 500;
 }}
 

@@ -126,8 +126,14 @@ def test_sidebar_layout_direction_rtl_and_ltr(qapp):
 # ---------------------------------------------------------------------------
 # 3. History Re-scan Tests
 # ---------------------------------------------------------------------------
-def test_history_rescan_file_exists(qapp, sample_file: Path, monkeypatch):
+def test_history_rescan_file_exists(qapp, sample_file: Path, monkeypatch, tmp_path: Path):
+    # Use temporary file for history storage to isolate test
+    fake_storage = tmp_path / "temp_history.json"
+    import nass.ui.views.history_view as hv
+    monkeypatch.setattr(hv, "HISTORY_STORAGE_FILE", fake_storage)
+
     history = HistoryView()
+    history.records.clear()
     doc_res = DocumentResult(
         file_path=sample_file,
         file_type=FileType.TEXT,
@@ -150,8 +156,13 @@ def test_history_rescan_file_exists(qapp, sample_file: Path, monkeypatch):
 
 
 def test_history_rescan_file_missing(qapp, tmp_path: Path, monkeypatch):
+    fake_storage = tmp_path / "temp_history.json"
+    import nass.ui.views.history_view as hv
+    monkeypatch.setattr(hv, "HISTORY_STORAGE_FILE", fake_storage)
+
     missing_file = tmp_path / "deleted_file.txt"
     history = HistoryView()
+    history.records.clear()
     rec = HistoryRecord(
         timestamp="2026-11-09 12:00:00",
         file_name="deleted_file.txt",
@@ -215,3 +226,87 @@ def test_main_window_apply_language(qapp):
     assert window.layoutDirection() == Qt.RightToLeft
     assert "الرئيسية" in window.sidebar.buttons[0].text()
     assert I18n.get_current_language() == "ar"
+
+
+# ---------------------------------------------------------------------------
+# 5. History Retention Limit (Default 50) Tests
+# ---------------------------------------------------------------------------
+def test_history_max_records_retention(qapp, tmp_path: Path):
+    history = HistoryView()
+    history.records.clear()
+    history.settings.set("max_history_records", 5)
+
+    for i in range(10):
+        f = tmp_path / f"file_{i}.txt"
+        f.write_text(f"content {i}", encoding="utf-8")
+        res = DocumentResult(
+            file_path=f,
+            file_type=FileType.TEXT,
+            file_size_bytes=10,
+            status=ProcessingStatus.COMPLETED,
+        )
+        history.add_record_from_result(res)
+
+    # Should only retain the last 5 records
+    assert len(history.records) == 5
+    assert history.records[0].file_name == "file_9.txt"
+    assert history.records[-1].file_name == "file_5.txt"
+
+    # Reset setting to default 50
+    history.settings.set("max_history_records", 50)
+
+
+def test_app_settings_view_max_history(qapp, monkeypatch):
+    from PySide6.QtWidgets import QMessageBox
+    monkeypatch.setattr(QMessageBox, "information", lambda *args, **kwargs: QMessageBox.Ok)
+
+    view = AppSettingsView()
+    assert view.spin_max_history.value() >= 5
+    view.spin_max_history.setValue(75)
+    view._save_settings()
+    assert SettingsManager.get_instance().get("max_history_records") == 75
+
+    # Restore default
+    view.spin_max_history.setValue(50)
+    view._save_settings()
+    assert SettingsManager.get_instance().get("max_history_records") == 50
+
+
+# ---------------------------------------------------------------------------
+# 6. ExtractView Bilingual Elements & Responsive Sizing
+# ---------------------------------------------------------------------------
+def test_extract_view_bilingual_texts(qapp, sample_file: Path):
+    from nass.ui.views.extract_view import ExtractView
+
+    view = ExtractView()
+    view.load_file(sample_file)
+
+    # Arabic mode
+    I18n.set_current_language("ar")
+    view.retranslate_ui()
+    assert "بدء استخراج النص" in view.btn_start.text() or "استخراج" in view.btn_start.text()
+    assert "إيقاف" in view.btn_cancel.text() or "إلغاء" in view.btn_cancel.text()
+    assert "تصدير TXT" in view.btn_export_txt.text()
+    assert "تصدير Word" in view.btn_export_docx.text()
+    assert "إعدادات استخراج المحتوى" in view.lbl_opts_title.text()
+
+    # English mode
+    I18n.set_current_language("en")
+    view.retranslate_ui()
+    assert "Start Extraction" in view.btn_start.text()
+    assert "Stop" in view.btn_cancel.text() or "Cancel" in view.btn_cancel.text()
+    assert "Export TXT" in view.btn_export_txt.text()
+    assert "Export Word" in view.btn_export_docx.text()
+    assert "Extraction Options" in view.lbl_opts_title.text()
+
+    # Restore Arabic default
+    I18n.set_current_language("ar")
+
+
+def test_main_window_responsive_minimum_size(qapp):
+    window = MainWindow()
+    min_size = window.minimumSize()
+    # Ensure minimum width <= 900 and height <= 600 for small displays
+    assert min_size.width() <= 900
+    assert min_size.height() <= 600
+

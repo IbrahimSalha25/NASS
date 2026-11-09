@@ -103,6 +103,31 @@ def _draw_github(p: QPainter, s: int):
     p.drawLine(QPointF(s * 0.65, s * 0.25), QPointF(s * 0.70, s * 0.15))
 
 
+def _draw_upload(p: QPainter, s: int):
+    # Base tray
+    p.drawLine(QPointF(s * 0.22, s * 0.66), QPointF(s * 0.22, s * 0.80))
+    p.drawLine(QPointF(s * 0.22, s * 0.80), QPointF(s * 0.78, s * 0.80))
+    p.drawLine(QPointF(s * 0.78, s * 0.80), QPointF(s * 0.78, s * 0.66))
+    # Up arrow shaft
+    p.drawLine(QPointF(s * 0.50, s * 0.20), QPointF(s * 0.50, s * 0.64))
+    # Up arrow head
+    p.drawLine(QPointF(s * 0.50, s * 0.20), QPointF(s * 0.32, s * 0.38))
+    p.drawLine(QPointF(s * 0.50, s * 0.20), QPointF(s * 0.68, s * 0.38))
+
+
+def _draw_folder(p: QPainter, s: int):
+    # Folder tab and body
+    path = QPainterPath()
+    path.moveTo(s * 0.15, s * 0.32)
+    path.lineTo(s * 0.40, s * 0.32)
+    path.lineTo(s * 0.48, s * 0.42)
+    path.lineTo(s * 0.85, s * 0.42)
+    path.lineTo(s * 0.85, s * 0.78)
+    path.lineTo(s * 0.15, s * 0.78)
+    path.closeSubpath()
+    p.drawPath(path)
+
+
 class AppIcons:
     """Unified icon registry for the application."""
 
@@ -111,8 +136,16 @@ class AppIcons:
         return create_colored_icon(_draw_home, color)
 
     @staticmethod
+    def folder(color: str = "#FFFFFF") -> QIcon:
+        return create_colored_icon(_draw_folder, color)
+
+    @staticmethod
     def ocr(color: str = "#FFFFFF") -> QIcon:
         return create_colored_icon(_draw_document_ocr, color)
+
+    @staticmethod
+    def upload(color: str = "#FFFFFF") -> QIcon:
+        return create_colored_icon(_draw_upload, color)
 
     @staticmethod
     def history(color: str = "#FFFFFF") -> QIcon:

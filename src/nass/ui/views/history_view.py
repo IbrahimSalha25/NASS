@@ -1,12 +1,14 @@
 """
 History view for NASS application.
-Displays a log of processed documents and extraction results during the current session.
+Displays a log of processed documents and extraction results.
+Enforces user-configurable record retention limit (default 50 files).
 Allows re-scanning documents without saving duplicate files, and copying extracted texts.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import json
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
@@ -29,7 +31,11 @@ from PySide6.QtWidgets import (
 
 from nass.core.i18n import I18n, tr
 from nass.core.models import DocumentResult, ProcessingStatus
+from nass.core.settings import SettingsManager, USER_CONFIG_DIR
 from nass.ui.icons import AppIcons
+from nass.utils.logger import logger
+
+HISTORY_STORAGE_FILE = USER_CONFIG_DIR / "history.json"
 
 
 @dataclass
@@ -55,24 +61,26 @@ class HistoryView(QWidget):
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
+        self.settings = SettingsManager.get_instance()
         self.records: List[HistoryRecord] = []
         self._init_ui()
+        self._load_history()
 
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 16, 20, 16)
-        layout.setSpacing(12)
+        layout.setContentsMargins(16, 12, 16, 12)
+        layout.setSpacing(10)
 
         # Header bar
         header = QFrame()
         header.setObjectName("cardFrame")
         h_layout = QHBoxLayout(header)
-        h_layout.setContentsMargins(16, 12, 16, 12)
+        h_layout.setContentsMargins(14, 10, 14, 10)
 
         title_box = QVBoxLayout()
         title_box.setSpacing(2)
         self.lbl_title = QLabel(tr("history_title"))
-        self.lbl_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #0F172A;")
+        self.lbl_title.setStyleSheet("font-size: 15px; font-weight: bold; color: #0F172A;")
         self.lbl_desc = QLabel(tr("history_desc"))
         self.lbl_desc.setStyleSheet("font-size: 12px; color: #64748B;")
         title_box.addWidget(self.lbl_title)
@@ -84,6 +92,7 @@ class HistoryView(QWidget):
         self.btn_clear = QPushButton(tr("history_clear_btn"))
         self.btn_clear.setObjectName("dangerButton")
         self.btn_clear.setCursor(Qt.PointingHandCursor)
+        self.btn_clear.setFixedHeight(32)
         self.btn_clear.clicked.connect(self._clear_history)
         h_layout.addWidget(self.btn_clear)
 
@@ -94,6 +103,8 @@ class HistoryView(QWidget):
         self.table.setColumnCount(7)
         self._setup_table_headers()
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeToContents)
+        self.table.verticalHeader().setDefaultSectionSize(38)
         self.table.setAlternatingRowColors(True)
         layout.addWidget(self.table)
 
@@ -108,6 +119,40 @@ class HistoryView(QWidget):
             tr("history_col_actions"),
         ])
 
+    def _load_history(self) -> None:
+        """Loads saved history records from local user storage."""
+        if not HISTORY_STORAGE_FILE.exists():
+            return
+
+        try:
+            with open(HISTORY_STORAGE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, list):
+                    loaded = [HistoryRecord(**item) for item in data if isinstance(item, dict)]
+                    max_records = self.settings.get("max_history_records", 50)
+                    self.records = loaded[:max_records]
+                    self._refresh_table()
+        except Exception as e:
+            logger.warning(f"Failed to load history from {HISTORY_STORAGE_FILE}: {e}")
+
+    def _save_history(self) -> None:
+        """Persists current history records to local user storage."""
+        try:
+            USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+            serializable = [asdict(r) for r in self.records]
+            with open(HISTORY_STORAGE_FILE, "w", encoding="utf-8") as f:
+                json.dump(serializable, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            logger.warning(f"Failed to save history to {HISTORY_STORAGE_FILE}: {e}")
+
+    def apply_settings_limits(self) -> None:
+        """Applies updated max_history_records setting to current records."""
+        max_records = self.settings.get("max_history_records", 50)
+        if len(self.records) > max_records:
+            self.records = self.records[:max_records]
+            self._save_history()
+            self._refresh_table()
+
     def retranslate_ui(self) -> None:
         """Retranslates table headers and view titles for the active language."""
         direction = Qt.RightToLeft if I18n.is_rtl() else Qt.LeftToRight
@@ -121,7 +166,8 @@ class HistoryView(QWidget):
 
     def add_record_from_result(self, result: DocumentResult) -> None:
         """
-        Adds a completed document processing result to the session history.
+        Adds a completed document processing result to the history,
+        trimming records according to max_history_records.
 
         Args:
             result: The DocumentResult object to record.
@@ -154,7 +200,13 @@ class HistoryView(QWidget):
             text_content=result.full_text,
             status=status_str,
         )
+
+        max_records = self.settings.get("max_history_records", 50)
         self.records.insert(0, rec)
+        if len(self.records) > max_records:
+            self.records = self.records[:max_records]
+
+        self._save_history()
         self._refresh_table()
 
     def _refresh_table(self) -> None:
@@ -176,24 +228,26 @@ class HistoryView(QWidget):
             # Actions widget with Re-scan and Copy buttons
             actions_widget = QWidget()
             aw_layout = QHBoxLayout(actions_widget)
-            aw_layout.setContentsMargins(2, 2, 2, 2)
-            aw_layout.setSpacing(4)
+            aw_layout.setContentsMargins(4, 2, 4, 2)
+            aw_layout.setSpacing(6)
 
             btn_rescan = QPushButton(tr("history_btn_rescan"))
             btn_rescan.setIcon(AppIcons.refresh("#1E40AF"))
             btn_rescan.setCursor(Qt.PointingHandCursor)
+            btn_rescan.setFixedHeight(26)
             btn_rescan.setStyleSheet(
                 "background-color: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; "
-                "border-radius: 4px; padding: 4px 6px; font-size: 11px; font-weight: 500;"
+                "border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 500;"
             )
             btn_rescan.clicked.connect(lambda _, r=rec: self._rescan_record(r))
 
             btn_copy = QPushButton(tr("history_btn_copy"))
             btn_copy.setIcon(AppIcons.copy("#0F172A"))
             btn_copy.setCursor(Qt.PointingHandCursor)
+            btn_copy.setFixedHeight(26)
             btn_copy.setStyleSheet(
                 "background-color: #F8FAFC; color: #334155; border: 1px solid #CBD5E1; "
-                "border-radius: 4px; padding: 4px 6px; font-size: 11px;"
+                "border-radius: 4px; padding: 2px 8px; font-size: 11px;"
             )
             btn_copy.clicked.connect(lambda _, t=rec.text_content: self._copy_text(t))
 
@@ -243,6 +297,7 @@ class HistoryView(QWidget):
                     if p.exists():
                         rec.file_path = str(p)
                         rec.file_name = p.name
+                        self._save_history()
                         self._refresh_table()
                         self.rescan_requested.emit(p)
 
@@ -260,10 +315,11 @@ class HistoryView(QWidget):
         reply = QMessageBox.question(
             self,
             tr("history_clear_btn"),
-            "هل أنت متأكد من رغبتك في مسح سجل العمليات الحالية؟" if I18n.is_rtl() else "Are you sure you want to clear current session history?",
+            tr("history_clear_confirm"),
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No,
         )
         if reply == QMessageBox.Yes:
             self.records.clear()
+            self._save_history()
             self._refresh_table()
