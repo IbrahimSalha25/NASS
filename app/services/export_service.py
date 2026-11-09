@@ -1,5 +1,5 @@
 """
-خدمة تصدير النصوص المستخرجة إلى صيغ TXT و DOCX مع دعم ترميز UTF-8 وتنسيق RTL.
+خدمة تصدير النصوص المستخرجة إلى صيغ TXT و DOCX و LaTeX مع دعم ترميز UTF-8 وتنسيق RTL.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from app.utils.logger import logger
 
 
 class ExportService:
-    """خدمة تصدير وحفظ نتائج استخراج النصوص."""
+    """خدمة تصدير وحفظ نتائج استخراج النصوص والمعادلات."""
 
     @staticmethod
     def export_to_txt(
@@ -50,6 +50,13 @@ class ExportService:
                     lines.append(f"[خطأ في استخراج الصفحة: {page.error_message}]")
                 else:
                     lines.append("[لا يوجد نص مكتشف في هذه الصفحة]")
+
+                # إذا كانت هناك معادلات رياضية في الصفحة
+                if page.equations:
+                    lines.append("")
+                    lines.append("المعادلات الرياضية (LaTeX):")
+                    for eq in page.equations:
+                        lines.append(f"  {eq}")
 
                 lines.append("")
 
@@ -116,6 +123,14 @@ class ExportService:
                     p = doc_file.add_paragraph("[لا يوجد نص مكتشف في هذه الصفحة]")
                     p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
+                # إضافة المعادلات الرياضية إن وجدت
+                if page.equations:
+                    eq_heading = doc_file.add_heading("المعادلات الرياضية (LaTeX):", level=3)
+                    eq_heading.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+                    for eq in page.equations:
+                        p_eq = doc_file.add_paragraph(eq)
+                        p_eq.alignment = WD_ALIGN_PARAGRAPH.LEFT  # كود LaTeX يكتب من اليسار لليمين
+
         try:
             doc_file.save(str(path))
             logger.info(f"تم تصدير مستند DOCX بنجاح إلى: {path}")
@@ -123,3 +138,46 @@ class ExportService:
         except Exception as e:
             logger.error(f"فشل تصدير مستند DOCX إلى {path}: {e}")
             raise IOError(f"تعذر حفظ مستند DOCX: {e}")
+
+    @staticmethod
+    def export_to_latex(
+        documents: Union[DocumentResult, List[DocumentResult]],
+        output_path: Path | str,
+    ) -> Path:
+        """
+        تصدير المعادلات الرياضية المستخرجة إلى ملف LaTeX (.tex) جاهز للتضمين.
+        """
+        path = Path(output_path).resolve()
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        docs = [documents] if isinstance(documents, DocumentResult) else documents
+
+        lines = [
+            r"% مستند معادلات رياضية مستخرجة عبر تطبيق نَصّ | NASS",
+            r"\documentclass{article}",
+            r"\usepackage{amsmath}",
+            r"\usepackage{amssymb}",
+            r"\begin{document}",
+            "",
+        ]
+
+        for doc in docs:
+            lines.append(f"% مستند: {doc.file_path.name}")
+            for page in doc.pages:
+                if page.equations:
+                    lines.append(f"% --- معادلات الصفحة {page.page_number} ---")
+                    for eq in page.equations:
+                        lines.append(eq)
+                        lines.append("")
+
+        lines.append(r"\end{document}")
+        content = "\n".join(lines)
+
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(content)
+            logger.info(f"تم تصدير ملف LaTeX بنجاح إلى: {path}")
+            return path
+        except Exception as e:
+            logger.error(f"فشل تصدير ملف LaTeX: {e}")
+            raise IOError(f"تعذر حفظ ملف LaTeX: {e}")
