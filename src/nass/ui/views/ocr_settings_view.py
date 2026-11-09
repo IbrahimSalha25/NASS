@@ -92,19 +92,19 @@ class OcrSettingsView(QWidget):
 
     def _init_ui(self) -> None:
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 16, 20, 16)
-        main_layout.setSpacing(12)
+        main_layout.setContentsMargins(14, 12, 14, 12)
+        main_layout.setSpacing(10)
 
         # Header bar
         header_frame = QFrame()
         header_frame.setObjectName("cardFrame")
         h_layout = QHBoxLayout(header_frame)
-        h_layout.setContentsMargins(16, 12, 16, 12)
+        h_layout.setContentsMargins(14, 10, 14, 10)
 
         title_box = QVBoxLayout()
         title_box.setSpacing(2)
         lbl_title = QLabel("إعدادات محرك OCR وإدارة اللغات")
-        lbl_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #0F172A;")
+        lbl_title.setStyleSheet("font-size: 15px; font-weight: bold; color: #0F172A;")
         lbl_desc = QLabel("إدارة محرك Tesseract، تنزيل وتثبيت حزم اللغات، وتخصيص دقة وخصائص التعرف")
         lbl_desc.setStyleSheet("font-size: 12px; color: #64748B;")
         title_box.addWidget(lbl_title)
@@ -166,9 +166,20 @@ class OcrSettingsView(QWidget):
         cs_layout.addWidget(self.lbl_status_badge)
 
         self.lbl_version_val = QLabel("-")
+        self.lbl_version_val.setLayoutDirection(Qt.LeftToRight)
+        self.lbl_version_val.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+
         self.lbl_exe_path_val = QLabel("-")
+        self.lbl_exe_path_val.setLayoutDirection(Qt.LeftToRight)
+        self.lbl_exe_path_val.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+
         self.lbl_tessdata_val = QLabel("-")
+        self.lbl_tessdata_val.setLayoutDirection(Qt.LeftToRight)
+        self.lbl_tessdata_val.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+
         self.lbl_pytesseract_val = QLabel("-")
+        self.lbl_pytesseract_val.setLayoutDirection(Qt.LeftToRight)
+        self.lbl_pytesseract_val.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         for title, val_lbl in [
             ("إصدار Tesseract:", self.lbl_version_val),
@@ -179,7 +190,11 @@ class OcrSettingsView(QWidget):
             row = QHBoxLayout()
             r_title = QLabel(title)
             r_title.setStyleSheet("font-weight: bold; min-width: 220px; color: #334155;")
-            val_lbl.setStyleSheet("color: #0F172A; font-family: monospace;")
+            val_lbl.setStyleSheet(
+                "color: #0F172A; font-family: 'Consolas', 'Courier New', monospace; "
+                "font-size: 12px; background-color: #F8FAFC; border: 1px solid #E2E8F0; "
+                "border-radius: 4px; padding: 3px 8px;"
+            )
             val_lbl.setTextInteractionFlags(Qt.TextSelectableByMouse)
             row.addWidget(r_title)
             row.addWidget(val_lbl, stretch=1)
@@ -272,6 +287,9 @@ class OcrSettingsView(QWidget):
         self.table_installed.setColumnCount(4)
         self.table_installed.setHorizontalHeaderLabels(["رمز اللغة", "اسم اللغة بالعربية", "الحجم على القرص", "إجراءات"])
         self.table_installed.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table_installed.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.table_installed.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        self.table_installed.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         ib_layout.addWidget(self.table_installed)
         splitter.addWidget(installed_box)
 
@@ -288,6 +306,9 @@ class OcrSettingsView(QWidget):
         self.table_catalog.setColumnCount(4)
         self.table_catalog.setHorizontalHeaderLabels(["رمز اللغة", "اسم اللغة بالعربية", "الحالة", "تنزيل وتثبيت"])
         self.table_catalog.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table_catalog.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.table_catalog.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        self.table_catalog.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         cb_layout.addWidget(self.table_catalog)
 
         self.progress_download = QProgressBar()
@@ -503,9 +524,13 @@ class OcrSettingsView(QWidget):
         self.table_installed.setRowCount(len(installed))
 
         for row, item in enumerate(installed):
-            self.table_installed.setItem(row, 0, QTableWidgetItem(item.code))
+            item_code = QTableWidgetItem(item.code)
+            item_code.setTextAlignment(Qt.AlignCenter)
+            self.table_installed.setItem(row, 0, item_code)
             self.table_installed.setItem(row, 1, QTableWidgetItem(item.name_ar))
-            self.table_installed.setItem(row, 2, QTableWidgetItem(item.size_formatted))
+            item_size = QTableWidgetItem(item.size_formatted)
+            item_size.setTextAlignment(Qt.AlignCenter)
+            self.table_installed.setItem(row, 2, item_size)
 
             btn_del = QPushButton("حذف")
             btn_del.setObjectName("dangerButton")
@@ -521,7 +546,9 @@ class OcrSettingsView(QWidget):
         self.table_catalog.setRowCount(len(catalog))
 
         for row, item in enumerate(catalog):
-            self.table_catalog.setItem(row, 0, QTableWidgetItem(item.code))
+            item_code = QTableWidgetItem(item.code)
+            item_code.setTextAlignment(Qt.AlignCenter)
+            self.table_catalog.setItem(row, 0, item_code)
             self.table_catalog.setItem(row, 1, QTableWidgetItem(item.name_ar))
 
             status_str = "مثبتة بالفعل" if item.is_installed else "متاحة للتنزيل"

@@ -36,9 +36,26 @@ class AboutView(QWidget):
         self._init_ui()
 
     def _init_ui(self) -> None:
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 16, 20, 16)
-        main_layout.setSpacing(12)
+        outer_layout = QVBoxLayout(self)
+        outer_layout.setContentsMargins(14, 12, 14, 12)
+        outer_layout.setSpacing(10)
+
+        # Header bar matching other screens
+        header = QFrame()
+        header.setObjectName("cardFrame")
+        h_layout = QHBoxLayout(header)
+        h_layout.setContentsMargins(14, 10, 14, 10)
+
+        title_box = QVBoxLayout()
+        title_box.setSpacing(2)
+        self.lbl_main_title = QLabel(tr("about_title"))
+        self.lbl_main_title.setStyleSheet("font-size: 15px; font-weight: bold; color: #0F172A;")
+        self.lbl_main_desc = QLabel(tr("about_desc"))
+        self.lbl_main_desc.setStyleSheet("font-size: 12px; color: #64748B;")
+        title_box.addWidget(self.lbl_main_title)
+        title_box.addWidget(self.lbl_main_desc)
+        h_layout.addLayout(title_box)
+        outer_layout.addWidget(header)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -46,8 +63,8 @@ class AboutView(QWidget):
 
         container = QWidget()
         container_layout = QVBoxLayout(container)
-        container_layout.setContentsMargins(8, 8, 8, 8)
-        container_layout.setSpacing(16)
+        container_layout.setContentsMargins(4, 4, 4, 4)
+        container_layout.setSpacing(12)
         container_layout.setAlignment(Qt.AlignTop)
 
         # 1. Main Application Header Card
@@ -94,17 +111,17 @@ class AboutView(QWidget):
         dev_card.setObjectName("cardFrame")
         dc_layout = QVBoxLayout(dev_card)
         dc_layout.setContentsMargins(20, 20, 20, 20)
-        dc_layout.setSpacing(12)
+        dc_layout.setSpacing(14)
 
         dev_header = QHBoxLayout()
         dev_title_box = QVBoxLayout()
         dev_title_box.setSpacing(2)
 
-        self.lbl_dev_heading = QLabel("بطاقة المطور")
+        self.lbl_dev_heading = QLabel(tr("about_dev_heading"))
         self.lbl_dev_heading.setStyleSheet("font-size: 15px; font-weight: bold; color: #0F172A;")
-        self.lbl_dev_name = QLabel("إبراهيم صالحة | Ibrahim Salha")
+        self.lbl_dev_name = QLabel(tr("about_dev_name"))
         self.lbl_dev_name.setStyleSheet("font-size: 14px; color: #1E40AF; font-weight: 600;")
-        self.lbl_dev_role = QLabel("طالب هندسة أنظمة ذكية وحاسوب • مهتم بالذكاء الاصطناعي ومعالجة البيانات")
+        self.lbl_dev_role = QLabel(tr("about_dev_role"))
         self.lbl_dev_role.setStyleSheet("font-size: 12px; color: #64748B;")
 
         dev_title_box.addWidget(self.lbl_dev_heading)
@@ -112,17 +129,41 @@ class AboutView(QWidget):
         dev_title_box.addWidget(self.lbl_dev_role)
         dev_header.addLayout(dev_title_box)
         dev_header.addStretch()
+        dc_layout.addLayout(dev_header)
 
-        self.btn_github = QPushButton("صفحة المطور على GitHub" if I18n.is_rtl() else "Developer GitHub")
+        # Developer personal links (GitHub, LinkedIn, Email, Portfolio)
+        links_box = QHBoxLayout()
+        links_box.setSpacing(8)
+
+        self.btn_github = QPushButton(tr("about_btn_github"))
         self.btn_github.setIcon(AppIcons.github())
         self.btn_github.setCursor(Qt.PointingHandCursor)
         self.btn_github.setStyleSheet(
-            "background-color: #0F172A; color: white; border-radius: 6px; padding: 6px 14px; font-weight: 500;"
+            "background-color: #0F172A; color: white; border-radius: 6px; padding: 6px 12px; font-weight: 500; font-size: 12px;"
         )
         self.btn_github.clicked.connect(self._open_github)
-        dev_header.addWidget(self.btn_github)
 
-        dc_layout.addLayout(dev_header)
+        self.btn_linkedin = QPushButton(tr("about_btn_linkedin"))
+        self.btn_linkedin.setIcon(AppIcons.linkedin())
+        self.btn_linkedin.setCursor(Qt.PointingHandCursor)
+        self.btn_linkedin.setStyleSheet(
+            "background-color: #0A66C2; color: white; border-radius: 6px; padding: 6px 12px; font-weight: 500; font-size: 12px;"
+        )
+        self.btn_linkedin.clicked.connect(self._open_linkedin)
+
+        self.btn_email = QPushButton(tr("about_btn_email"))
+        self.btn_email.setIcon(AppIcons.mail())
+        self.btn_email.setCursor(Qt.PointingHandCursor)
+        self.btn_email.setStyleSheet(
+            "background-color: #F8FAFC; color: #0F172A; border: 1px solid #CBD5E1; border-radius: 6px; padding: 6px 12px; font-weight: 500; font-size: 12px;"
+        )
+        self.btn_email.clicked.connect(self._open_email)
+
+        links_box.addWidget(self.btn_github)
+        links_box.addWidget(self.btn_linkedin)
+        links_box.addWidget(self.btn_email)
+        links_box.addStretch()
+        dc_layout.addLayout(links_box)
 
         self.lbl_dev_bio = QLabel(
             "تم تصميم وبناء تطبيق نَصّ (NASS) بحرص هندسي عالٍ ليكون حلاً محلياً شاملاً، ذكياً، ومفتوح المصدر "
@@ -134,6 +175,33 @@ class AboutView(QWidget):
         dc_layout.addWidget(self.lbl_dev_bio)
 
         container_layout.addWidget(dev_card)
+
+        # 3. Project Info & Repository Card
+        repo_card = QFrame()
+        repo_card.setObjectName("cardFrame")
+        rc_layout = QVBoxLayout(repo_card)
+        rc_layout.setContentsMargins(20, 20, 20, 20)
+        rc_layout.setSpacing(10)
+
+        self.lbl_repo_title = QLabel(tr("about_project_info_title"))
+        self.lbl_repo_title.setStyleSheet("font-size: 14px; font-weight: bold; color: #1E40AF;")
+
+        self.lbl_repo_desc = QLabel(tr("about_project_repo_desc"))
+        self.lbl_repo_desc.setStyleSheet("color: #334155; font-size: 12px;")
+
+        self.btn_repo = QPushButton(tr("about_btn_repo"))
+        self.btn_repo.setIcon(AppIcons.github("#1E40AF"))
+        self.btn_repo.setCursor(Qt.PointingHandCursor)
+        self.btn_repo.setStyleSheet(
+            "background-color: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; "
+            "border-radius: 6px; padding: 6px 14px; font-weight: 600; font-size: 12px;"
+        )
+        self.btn_repo.clicked.connect(self._open_repository)
+
+        rc_layout.addWidget(self.lbl_repo_title)
+        rc_layout.addWidget(self.lbl_repo_desc)
+        rc_layout.addWidget(self.btn_repo, alignment=Qt.AlignLeft if not I18n.is_rtl() else Qt.AlignRight)
+        container_layout.addWidget(repo_card)
 
         # 3. Privacy & Offline Processing Guarantee Card
         privacy_card = QFrame()
@@ -185,50 +253,65 @@ class AboutView(QWidget):
         container_layout.addWidget(tech_card)
 
         scroll.setWidget(container)
-        main_layout.addWidget(scroll)
+        outer_layout.addWidget(scroll)
 
     def retranslate_ui(self) -> None:
         """Updates text for the active application language."""
         direction = Qt.RightToLeft if I18n.is_rtl() else Qt.LeftToRight
         self.setLayoutDirection(direction)
 
+        self.lbl_main_title.setText(tr("about_title"))
+        self.lbl_main_desc.setText(tr("about_desc"))
         self.lbl_slogan.setText(tr("app_slogan"))
         self.lbl_version.setText(f"{tr('version')} {APP_VERSION} • MIT License")
+        self.lbl_dev_heading.setText(tr("about_dev_heading"))
+        self.lbl_dev_name.setText(tr("about_dev_name"))
+        self.lbl_dev_role.setText(tr("about_dev_role"))
+        self.btn_github.setText(tr("about_btn_github"))
+        self.btn_linkedin.setText(tr("about_btn_linkedin"))
+        self.btn_email.setText(tr("about_btn_email"))
+        self.lbl_repo_title.setText(tr("about_project_info_title"))
+        self.lbl_repo_desc.setText(tr("about_project_repo_desc"))
+        self.btn_repo.setText(tr("about_btn_repo"))
+        self.lbl_privacy_title.setText(tr("about_privacy_title"))
+        self.lbl_tech_title.setText(tr("about_tech_title"))
 
         if I18n.is_rtl():
-            self.lbl_dev_heading.setText("بطاقة المطور")
-            self.lbl_dev_role.setText("طالب هندسة أنظمة ذكية وحاسوب • مهتم بالذكاء الاصطناعي ومعالجة البيانات")
-            self.btn_github.setText("صفحة المطور على GitHub")
             self.lbl_dev_bio.setText(
                 "تم تصميم وبناء تطبيق نَصّ (NASS) بحرص هندسي عالٍ ليكون حلاً محلياً شاملاً، ذكياً، ومفتوح المصدر "
                 "لاستخراج النصوص من مختلف أنواع الملفات والمستندات والصور، مع مراعاة أعلى معايير الجودة، "
                 "والنظافة المعمارية للكود البرمجي، وسهولة الاستخدام للجمهور العربي."
             )
-            self.lbl_privacy_title.setText("ضمان الخصوصية والمعالجة المحلية بنسبة 100%")
             self.lbl_privacy_text.setText(
                 "يعمل تطبيق نَصّ بالكامل دون الحاجة إلى اتصال بالإنترنت بعد تثبيت المحرك وحزم اللغات.\n"
                 "• لا يتم إرسال أي صورة، مستند، أو نص إلى خوادم خارجية أو واجهات سحابية (APIs).\n"
                 "• معالجة ملفاتك، صورك، وكتبك تتم محلياً 100% داخل ذاكرة جهازك الشخصي.\n"
                 "• الحفاظ الكامل والمطلق على سرية المستندات الحساسة والشخصية."
             )
-            self.lbl_tech_title.setText("التقنيات والمكتبات المستخدمة")
         else:
-            self.lbl_dev_heading.setText("Developer Card")
-            self.lbl_dev_role.setText("Intelligent Systems & Computer Engineering Student • AI & Vision Enthusiast")
-            self.btn_github.setText("Developer on GitHub")
             self.lbl_dev_bio.setText(
                 "NASS is crafted with rigorous software engineering standards to deliver a comprehensive, "
                 "smart, local-first open-source document extraction and OCR tool for Arabic and multilingual users."
             )
-            self.lbl_privacy_title.setText("100% Local & Offline Privacy Guarantee")
             self.lbl_privacy_text.setText(
                 "NASS operates entirely locally without requiring internet connectivity after engine setup.\n"
                 "• Zero documents, images, or texts are sent to external servers or cloud APIs.\n"
                 "• All processing takes place 100% on your local machine memory.\n"
                 "• Absolute confidentiality and protection for your private and sensitive documents."
             )
-            self.lbl_tech_title.setText("Technologies & Libraries")
 
     def _open_github(self) -> None:
         """Opens developer GitHub profile in the default system web browser."""
         QDesktopServices.openUrl(QUrl("https://github.com/IbrahimSalha25"))
+
+    def _open_linkedin(self) -> None:
+        """Opens developer LinkedIn profile in the default system web browser."""
+        QDesktopServices.openUrl(QUrl("https://linkedin.com/in/ibrahim-salha"))
+
+    def _open_email(self) -> None:
+        """Opens default mail client to contact the developer."""
+        QDesktopServices.openUrl(QUrl("mailto:ibrahimsalha.eng@gmail.com"))
+
+    def _open_repository(self) -> None:
+        """Opens application GitHub repository."""
+        QDesktopServices.openUrl(QUrl("https://github.com/IbrahimSalha25/NASS"))
