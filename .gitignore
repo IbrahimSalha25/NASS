@@ -1,0 +1,33 @@
+# Virtual Environment
+Lib/
+Scripts/
+pyvenv.cfg
+.venv/
+env/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# IDEs and Editors
+.idea/
+.cursor/
+.vscode/
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+
+# Testing & coverage
+.coverage
+htmlcov/
+
+# Local outputs & logs
+output/
+temp/
+*.log
