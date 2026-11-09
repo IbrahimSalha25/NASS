@@ -1,28 +1,43 @@
 """
 الأنماط البصرية وقوالب التصميم (QSS) لنظام نَصّ (NASS).
-تصميم هادئ وعصري يراعي محاذاة RTL والخطوط العربية.
+تصميم حديث وأنيق بهوية بصرية قائمة على الأزرق الداكن والبنفسجي الهادئ مع دعم كامل لـ RTL.
 """
 
-# الألوان الأساسية
-COLOR_PRIMARY = "#1E5E8A"         # أزرق هادئ
-COLOR_PRIMARY_HOVER = "#18496B"
-COLOR_PRIMARY_ACTIVE = "#123751"
-COLOR_BG = "#F8FAFC"              # رمادي ثلجي خفيف جداً
-COLOR_CARD = "#FFFFFF"            # بطاقات بيضاء نقية
-COLOR_BORDER = "#E2E8F0"          # حدود خفيفة
-COLOR_BORDER_FOCUS = "#3B82F6"
-COLOR_TEXT = "#1E293B"            # كحلي غامق مريح للعين
-COLOR_TEXT_MUTED = "#64748B"      # نص رمادي فرعي
-COLOR_SUCCESS = "#10B981"         # أخضر هادئ للنجاح
-COLOR_WARNING = "#F59E0B"         # برتقالي للتحذير
-COLOR_ERROR = "#EF4444"           # أحمر للأخطاء
+# لوحة الألوان الموحدة
+COLOR_SIDEBAR_BG = "#0F172A"       # أزرق داكن ليلي أنيق للشريط الجانبي
+COLOR_SIDEBAR_HOVER = "#1E293B"    # تظليل عناصر الشريط الجانبي
+COLOR_SIDEBAR_ACTIVE = "#1E3A8A"   # العنصر النشط بالشريط الجانبي
+COLOR_SIDEBAR_TEXT = "#E2E8F0"     # نص الشريط الجانبي
+COLOR_SIDEBAR_MUTED = "#94A3B8"
+
+COLOR_PRIMARY = "#1E40AF"          # أزرق كحلي ملكي رئيسي
+COLOR_PRIMARY_HOVER = "#1D4ED8"
+COLOR_PRIMARY_ACTIVE = "#172554"
+
+COLOR_ACCENT = "#7C3AED"           # بنفسجي هادئ للمسات المميزة
+COLOR_ACCENT_LIGHT = "#EDE9FE"
+
+COLOR_BG = "#F8FAFC"               # خلفية الصفحات رمادي ثلجي مريح جداً للعين
+COLOR_CARD = "#FFFFFF"             # بطاقات بيضاء نقية
+COLOR_BORDER = "#E2E8F0"           # حدود البطاقات
+COLOR_BORDER_FOCUS = "#2563EB"     # تركيز الحقول
+
+COLOR_TEXT = "#0F172A"             # نص كحلي داكن مقروء بوضوح
+COLOR_TEXT_MUTED = "#64748B"       # نص رمادي فرعي
+
+COLOR_SUCCESS = "#10B981"          # أخضر هادئ للنجاح
+COLOR_SUCCESS_BG = "#ECFDF5"
+COLOR_WARNING = "#F59E0B"          # برتقالي للتحذير
+COLOR_WARNING_BG = "#FFFBEB"
+COLOR_ERROR = "#EF4444"            # أحمر للأخطاء
+COLOR_ERROR_BG = "#FEF2F2"
 
 APP_STYLESHEET = f"""
-/* النمط العام */
+/* النمط العام لكافة عناصر التطبيق */
 QWidget {{
     background-color: {COLOR_BG};
     color: {COLOR_TEXT};
-    font-family: "Segoe UI", "Tahoma", "Cairo", sans-serif;
+    font-family: "IBM Plex Sans Arabic", "Tajawal", "Segoe UI", "Tahoma", "Cairo", sans-serif;
     font-size: 13px;
 }}
 
@@ -31,19 +46,72 @@ QMainWindow {{
     background-color: {COLOR_BG};
 }}
 
-/* العناوين والبطاقات */
+/* الشريط الجانبي الفاخر */
+QFrame#sidebarFrame {{
+    background-color: {COLOR_SIDEBAR_BG};
+    border-left: 1px solid #1E293B;
+    border-right: none;
+    padding: 0px;
+}}
+
+QLabel#sidebarLogoTitle {{
+    color: #FFFFFF;
+    font-size: 18px;
+    font-weight: bold;
+    background: transparent;
+}}
+
+QLabel#sidebarLogoSub {{
+    color: {COLOR_SIDEBAR_MUTED};
+    font-size: 11px;
+    background: transparent;
+}}
+
+QPushButton#sidebarButton {{
+    background-color: transparent;
+    color: {COLOR_SIDEBAR_TEXT};
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: right;
+    margin: 2px 8px;
+}}
+
+QPushButton#sidebarButton:hover {{
+    background-color: {COLOR_SIDEBAR_HOVER};
+    color: #FFFFFF;
+}}
+
+QPushButton#sidebarButton:checked {{
+    background-color: {COLOR_SIDEBAR_ACTIVE};
+    color: #FFFFFF;
+    font-weight: bold;
+    border-right: 4px solid {COLOR_ACCENT};
+}}
+
+/* البطاقات الحاوية واللوحات */
 QFrame#cardFrame {{
+    background-color: {COLOR_CARD};
+    border: 1px solid {COLOR_BORDER};
+    border-radius: 10px;
+    padding: 16px;
+}}
+
+QFrame#statCard {{
     background-color: {COLOR_CARD};
     border: 1px solid {COLOR_BORDER};
     border-radius: 8px;
     padding: 12px;
 }}
 
+/* منطقة السحب والإفلات */
 QFrame#dropZone {{
     background-color: {COLOR_CARD};
     border: 2px dashed #CBD5E1;
-    border-radius: 10px;
-    padding: 24px;
+    border-radius: 12px;
+    padding: 28px;
 }}
 
 QFrame#dropZone:hover {{
@@ -51,13 +119,13 @@ QFrame#dropZone:hover {{
     background-color: #F1F5F9;
 }}
 
-/* الأزرار */
+/* الأزرار القياسية */
 QPushButton {{
     background-color: #FFFFFF;
     color: {COLOR_TEXT};
     border: 1px solid {COLOR_BORDER};
     border-radius: 6px;
-    padding: 7px 16px;
+    padding: 8px 16px;
     font-weight: 500;
 }}
 
@@ -70,13 +138,15 @@ QPushButton:pressed {{
     background-color: #E2E8F0;
 }}
 
+/* الزر الأساسي بلون أزرق داكن */
 QPushButton#primaryButton {{
     background-color: {COLOR_PRIMARY};
     color: #FFFFFF;
     border: none;
     font-weight: bold;
     font-size: 14px;
-    padding: 9px 22px;
+    padding: 10px 22px;
+    border-radius: 8px;
 }}
 
 QPushButton#primaryButton:hover {{
@@ -92,42 +162,84 @@ QPushButton#primaryButton:disabled {{
     color: #F8FAFC;
 }}
 
+/* زر الخطر / الإلغاء */
 QPushButton#dangerButton {{
-    background-color: #FEF2F2;
+    background-color: {COLOR_ERROR_BG};
     color: {COLOR_ERROR};
     border: 1px solid #FECACA;
+    font-weight: bold;
+    padding: 8px 18px;
+    border-radius: 6px;
 }}
 
 QPushButton#dangerButton:hover {{
     background-color: #FEE2E2;
 }}
 
-/* القوائم المنسدلة وحقول الإدخال */
-QComboBox {{
+/* زر اللمسة البنفسجية */
+QPushButton#accentButton {{
+    background-color: {COLOR_ACCENT};
+    color: #FFFFFF;
+    border: none;
+    font-weight: bold;
+    padding: 8px 18px;
+    border-radius: 6px;
+}}
+
+QPushButton#accentButton:hover {{
+    background-color: #6D28D9;
+}}
+
+/* حقول الإدخال والقوائم المنسدلة */
+QLineEdit, QComboBox, QSpinBox {{
     background-color: #FFFFFF;
     border: 1px solid {COLOR_BORDER};
     border-radius: 6px;
-    padding: 6px 12px;
-    min-width: 140px;
+    padding: 7px 10px;
+    color: {COLOR_TEXT};
 }}
 
-QComboBox:focus {{
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus {{
     border-color: {COLOR_BORDER_FOCUS};
 }}
 
 QComboBox::drop-down {{
     border: none;
-    width: 20px;
+    padding-left: 10px;
 }}
 
-/* الجداول والقوائم */
+/* محرر وعارض النصوص */
+QTextEdit {{
+    background-color: #FFFFFF;
+    border: 1px solid {COLOR_BORDER};
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    selection-background-color: #BFDBFE;
+}}
+
+/* شريط التقدم */
+QProgressBar {{
+    background-color: #E2E8F0;
+    border: none;
+    border-radius: 6px;
+    height: 10px;
+    text-align: center;
+    color: transparent;
+}}
+
+QProgressBar::chunk {{
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {COLOR_PRIMARY}, stop:1 {COLOR_ACCENT});
+    border-radius: 6px;
+}}
+
+/* الجداول */
 QTableWidget {{
     background-color: #FFFFFF;
     border: 1px solid {COLOR_BORDER};
-    border-radius: 6px;
+    border-radius: 8px;
     gridline-color: #F1F5F9;
-    selection-background-color: #E0F2FE;
-    selection-color: {COLOR_TEXT};
 }}
 
 QHeaderView::section {{
@@ -136,64 +248,50 @@ QHeaderView::section {{
     font-weight: bold;
     border: none;
     border-bottom: 1px solid {COLOR_BORDER};
-    padding: 8px 10px;
+    padding: 8px;
 }}
 
-/* شريط التقدم */
-QProgressBar {{
-    background-color: #E2E8F0;
-    border-radius: 5px;
-    height: 10px;
-    text-align: center;
-    font-size: 10px;
-    color: transparent;
-}}
-
-QProgressBar::chunk {{
-    background-color: {COLOR_PRIMARY};
-    border-radius: 5px;
-}}
-
-/* مربعات الاختيار */
-QCheckBox {{
-    spacing: 8px;
-    color: {COLOR_TEXT};
-}}
-
-QCheckBox::indicator {{
-    width: 18px;
-    height: 18px;
+/* التبويبات */
+QTabWidget::pane {{
     border: 1px solid {COLOR_BORDER};
-    border-radius: 4px;
+    border-radius: 8px;
     background-color: #FFFFFF;
+    top: -1px;
 }}
 
-QCheckBox::indicator:checked {{
-    background-color: {COLOR_PRIMARY};
-    border-color: {COLOR_PRIMARY};
-}}
-
-/* محرر ومستعرض النصوص */
-QTextEdit {{
-    background-color: #FFFFFF;
-    border: 1px solid {COLOR_BORDER};
-    border-radius: 6px;
-    padding: 10px;
-    font-family: "Segoe UI", "Tahoma", sans-serif;
-    font-size: 14px;
-    line-height: 1.6;
-    color: {COLOR_TEXT};
-}}
-
-QTextEdit:focus {{
-    border-color: {COLOR_BORDER_FOCUS};
-}}
-
-/* شريط الحالة */
-QStatusBar {{
-    background-color: #FFFFFF;
-    border-top: 1px solid {COLOR_BORDER};
+QTabBar::tab {{
+    background-color: #F1F5F9;
     color: {COLOR_TEXT_MUTED};
-    font-size: 12px;
+    border: 1px solid {COLOR_BORDER};
+    border-bottom: none;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    padding: 9px 18px;
+    margin-left: 2px;
+    font-weight: 500;
+}}
+
+QTabBar::tab:selected {{
+    background-color: #FFFFFF;
+    color: {COLOR_PRIMARY};
+    font-weight: bold;
+    border-bottom: 2px solid {COLOR_PRIMARY};
+}}
+
+/* أشرطة التمرير */
+QScrollBar:vertical {{
+    background: transparent;
+    width: 8px;
+    margin: 0px;
+}}
+
+QScrollBar::handle:vertical {{
+    background: #CBD5E1;
+    min-height: 24px;
+    border-radius: 4px;
+}}
+
+QScrollBar::handle:vertical:hover {{
+    background: #94A3B8;
 }}
 """
