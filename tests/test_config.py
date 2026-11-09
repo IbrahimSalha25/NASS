@@ -1,5 +1,5 @@
 """
-اختبارات ملف الإعدادات والتحقق من مسارات Tesseract و tessdata.
+Configuration tests for verifying Tesseract executable and tessdata path discovery.
 """
 
 from app.config import (
@@ -11,7 +11,7 @@ from app.config import (
 
 
 def test_tesseract_executable_found():
-    """التحقق من العثور على ملف tesseract.exe على النظام."""
+    """Verify that tesseract.exe is successfully discovered on the system."""
     exe = find_tesseract_executable()
     assert exe is not None
     assert exe.exists()
@@ -19,16 +19,16 @@ def test_tesseract_executable_found():
 
 
 def test_tessdata_directory_found():
-    """التحقق من العثور على مجلد tessdata ووجود ملفات اللغات."""
+    """Verify that tessdata directory is discovered and contains language packages."""
     tessdata = find_tessdata_directory()
     assert tessdata is not None
     assert tessdata.exists()
     trained_files = list(tessdata.glob("*.traineddata"))
-    assert len(trained_files) >= 2  # ara + eng على الأقل
+    assert len(trained_files) >= 2  # At least ara + eng
 
 
 def test_supported_extensions():
-    """التحقق من قائمة الامتدادات المدعومة."""
+    """Verify list of supported file extensions."""
     assert ".pdf" in SUPPORTED_ALL_EXTENSIONS
     assert ".png" in SUPPORTED_ALL_EXTENSIONS
     assert ".jpg" in SUPPORTED_ALL_EXTENSIONS

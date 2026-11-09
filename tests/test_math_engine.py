@@ -1,5 +1,5 @@
 """
-اختبارات وحدة لمحرك التعرف على المعادلات الرياضية (Math Engine).
+Unit tests for mathematical formula recognition engine (Math Engine).
 """
 
 from PIL import Image
@@ -48,7 +48,7 @@ def test_math_recognition_service():
     assert "builtin_available" in status
     assert status["builtin_available"] is True
 
-    # اختبار استخراج من نص يحوي معادلات
+    # Test extraction from equation-containing text
     text = "y = 2*x + 5"
     eqs = service.extract_equations(text_context=text)
     assert len(eqs) > 0

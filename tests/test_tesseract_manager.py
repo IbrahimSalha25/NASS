@@ -1,5 +1,5 @@
 """
-اختبارات وحدة لمدير Tesseract ومدير الإعدادات لنظام نَصّ (NASS).
+Unit tests for TesseractManager and SettingsManager in NASS.
 """
 
 import tempfile
@@ -21,16 +21,16 @@ def test_settings_manager_defaults():
         assert mgr.get("dpi") == 300
         assert mgr.get("tesseract_custom_path") is None
 
-        # تعديل خيار وحفظه
+        # Modify option and persist
         mgr.set("dpi", 400)
         assert mgr.get("dpi") == 400
         assert config_path.exists()
 
-        # قراءة من جديد
+        # Reload from persisted configuration
         mgr2 = SettingsManager(config_file=config_path)
         assert mgr2.get("dpi") == 400
 
-        # استعادة الافتراضي
+        # Reset to defaults
         mgr2.reset_to_defaults()
         assert mgr2.get("dpi") == 300
 
@@ -56,7 +56,7 @@ def test_tesseract_manager_get_status():
 def test_tesseract_manager_verify_installation():
     mgr = TesseractManager()
     success, msg, status = mgr.verify_installation()
-    # إذا كان tesseract مثبتاً على الجهاز فيجب أن ينجح الفحص
+    # If tesseract is installed locally, verification should succeed
     if status.get("is_installed") and status.get("pytesseract_connected") and status.get("available_languages"):
         assert success is True
         assert "يعمل بكفاءة" in msg

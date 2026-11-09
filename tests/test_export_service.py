@@ -1,5 +1,5 @@
 """
-اختبارات خدمة التصدير (Export Service) لملفات TXT و DOCX.
+Tests for ExportService verifying TXT and DOCX file generation.
 """
 
 from pathlib import Path
@@ -8,7 +8,7 @@ from app.services.export_service import ExportService
 
 
 def test_export_to_txt(tmp_path: Path):
-    """التحقق من تصدير النصوص إلى TXT بترميز UTF-8 وفواصل واضحة."""
+    """Verify exporting text to TXT format with UTF-8 encoding and clear separators."""
     p1 = PageResult(page_number=1, text="مرحباً بكم في مشروع نَصّ", confidence=95.0)
     p2 = PageResult(page_number=2, text="Welcome to NASS OCR", confidence=98.0)
 
@@ -33,7 +33,7 @@ def test_export_to_txt(tmp_path: Path):
 
 
 def test_export_to_docx(tmp_path: Path):
-    """التحقق من إنشاء ملف Word (DOCX) بنجاح."""
+    """Verify generating Word (DOCX) document successfully."""
     p1 = PageResult(page_number=1, text="فقرة باللغة العربية داخل ملف وورد", confidence=90.0)
 
     doc = DocumentResult(

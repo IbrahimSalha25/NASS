@@ -1,5 +1,5 @@
 """
-اختبارات السيناريوهات المتكاملة الـ 17 للتحقق من معايير قبول المشروع.
+Integration scenario tests verifying project acceptance criteria and workflows.
 """
 
 import tempfile
@@ -18,7 +18,7 @@ from app.services.processing_service import ProcessingService
 
 @pytest.fixture
 def sample_english_image(tmp_path: Path) -> Path:
-    """إنشاء صورة إنجليزية اختبارية نقية."""
+    """Create a clean English synthetic test image."""
     img_path = tmp_path / "test_english.png"
     img = Image.new("RGB", (400, 100), color="white")
     draw = ImageDraw.Draw(img)
@@ -29,7 +29,7 @@ def sample_english_image(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def sample_multipage_pdf(tmp_path: Path) -> Path:
-    """إنشاء ملف PDF ثنائي الصفحات اختباري."""
+    """Create a two-page synthetic test PDF."""
     pdf_path = tmp_path / "test_multipage.pdf"
     doc = fitz.open()
 
@@ -45,7 +45,7 @@ def sample_multipage_pdf(tmp_path: Path) -> Path:
 
 
 def test_scenario_tesseract_discovery():
-    """السيناريو 1 و 2: فحص واكتشاف محرك Tesseract والتحقق منه."""
+    """Scenarios 1 & 2: Inspect and verify Tesseract OCR engine discovery."""
     mgr = TesseractManager()
     status = mgr.get_engine_status()
     assert "is_installed" in status
@@ -54,7 +54,7 @@ def test_scenario_tesseract_discovery():
 
 
 def test_scenario_english_image_processing(sample_english_image: Path):
-    """السيناريو 8: معالجة صورة إنجليزية."""
+    """Scenario 8: Process English image file."""
     service = ProcessingService()
     opts = OcrOptions(language="eng", psm=3)
     res = service.process_image_file(sample_english_image, opts)
@@ -64,7 +64,7 @@ def test_scenario_english_image_processing(sample_english_image: Path):
 
 
 def test_scenario_multipage_pdf_processing(sample_multipage_pdf: Path):
-    """السيناريو 10: معالجة مستند PDF متعدد الصفحات بالتتابع."""
+    """Scenario 10: Process multipage PDF document sequentially."""
     service = ProcessingService()
     opts = OcrOptions(language="eng", extract_embedded_first=True)
     res = service.process_pdf_file(sample_multipage_pdf, opts)
@@ -77,24 +77,24 @@ def test_scenario_multipage_pdf_processing(sample_multipage_pdf: Path):
 
 
 def test_scenario_math_recognition_enabled(sample_multipage_pdf: Path):
-    """السيناريو 11 و 12: استخراج المعادلات الرياضية واختبار تفعيلها وتعطيلها."""
+    """Scenarios 11 & 12: Extract math formulas and test enabling/disabling."""
     service = ProcessingService()
 
-    # 1. تفعيل المعادلات
+    # 1. Math extraction enabled
     opts_with_math = OcrOptions(language="eng", extract_math=True, extract_embedded_first=True)
     res_math = service.process_pdf_file(sample_multipage_pdf, opts_with_math)
     assert res_math.status == ProcessingStatus.COMPLETED
     assert len(res_math.pages[1].equations) > 0
     assert "2 \\times x" in res_math.pages[1].equations[0] or "y" in res_math.pages[1].equations[0]
 
-    # 2. تعطيل المعادلات
+    # 2. Math extraction disabled
     opts_no_math = OcrOptions(language="eng", extract_math=False, extract_embedded_first=True)
     res_no_math = service.process_pdf_file(sample_multipage_pdf, opts_no_math)
     assert len(res_no_math.pages[1].equations) == 0
 
 
 def test_scenario_cancellation(sample_multipage_pdf: Path):
-    """السيناريو 13: إلغاء المعالجة بين الصفحات."""
+    """Scenario 13: Mid-page extraction cancellation."""
     service = ProcessingService()
     opts = OcrOptions(language="eng", extract_embedded_first=False)
 
@@ -114,7 +114,7 @@ def test_scenario_cancellation(sample_multipage_pdf: Path):
 
 
 def test_scenario_export_formats(sample_multipage_pdf: Path, tmp_path: Path):
-    """السيناريو 14: تصدير النتائج إلى TXT و DOCX و LaTeX."""
+    """Scenario 14: Export extraction results to TXT, DOCX, and LaTeX."""
     service = ProcessingService()
     opts = OcrOptions(language="eng", extract_math=True, extract_embedded_first=True)
     doc_res = service.process_pdf_file(sample_multipage_pdf, opts)
@@ -133,7 +133,7 @@ def test_scenario_export_formats(sample_multipage_pdf: Path, tmp_path: Path):
 
 
 def test_scenario_corrupt_file_handling(tmp_path: Path):
-    """السيناريو 15: معالجة ملف تالف برسالة واضحة دون انهيار البرنامج."""
+    """Scenario 15: Handle corrupted file gracefully with clear error message."""
     corrupt_pdf = tmp_path / "corrupt.pdf"
     corrupt_pdf.write_bytes(b"NOT_A_VALID_PDF_HEADER_12345")
 

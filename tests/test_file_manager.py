@@ -1,5 +1,5 @@
 """
-اختبارات مدير الملفات (File Manager) ودعم المسارات العربية والمسافات.
+Tests for FileManager and handling of paths containing Arabic characters and spaces.
 """
 
 from pathlib import Path
@@ -8,7 +8,7 @@ from app.core.models import FileType
 
 
 def test_detect_file_types():
-    """اختبار كشف أنواع الملفات بناءً على الامتدادات."""
+    """Test detecting file types based on file extensions."""
     assert FileManager.detect_file_type(Path("document.pdf")) == FileType.PDF
     assert FileManager.detect_file_type(Path("IMAGE.PNG")) == FileType.IMAGE
     assert FileManager.detect_file_type(Path("photo.jpg")) == FileType.IMAGE
@@ -18,7 +18,7 @@ def test_detect_file_types():
 
 
 def test_discover_arabic_and_spaced_files(tmp_path: Path):
-    """اختبار استكشاف الملفات بمسارات تحتوي على أحرف عربية ومسافات."""
+    """Test discovering files with paths containing Arabic characters and spaces."""
     folder = tmp_path / "مجلد مستندات وتجارب"
     folder.mkdir()
 
@@ -32,7 +32,7 @@ def test_discover_arabic_and_spaced_files(tmp_path: Path):
 
     discovered = FileManager.discover_files([folder])
 
-    # يجب اكتشاف الـ PDF والصورة فقط، وتجاهل CSV
+    # Should discover PDF and Image only, ignoring unsupported CSV
     assert len(discovered) == 2
     assert file_ar in discovered
     assert file_en in discovered

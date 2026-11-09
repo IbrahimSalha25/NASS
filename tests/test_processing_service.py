@@ -1,5 +1,5 @@
 """
-اختبارات خدمة المعالجة الشاملة (ProcessingService).
+Tests for ProcessingService orchestration.
 """
 
 from pathlib import Path
@@ -10,7 +10,7 @@ from app.services.processing_service import ProcessingService
 
 
 def test_processing_service_image(tmp_path: Path):
-    """اختبار معالجة ملف صورة كامل من خلال ProcessingService."""
+    """Test full image document processing pipeline via ProcessingService."""
     img_path = tmp_path / "test_receipt.png"
     img = Image.new("RGB", (300, 70), color=(255, 255, 255))
     d = ImageDraw.Draw(img)
@@ -28,7 +28,7 @@ def test_processing_service_image(tmp_path: Path):
 
 
 def test_processing_service_cancellation(tmp_path: Path):
-    """التحقق من استجابة المعالجة لإشارة الإلغاء."""
+    """Verify processing cancellation responsiveness."""
     img_path = tmp_path / "test_cancel.png"
     img = Image.new("RGB", (200, 50), color=(255, 255, 255))
     img.save(img_path)
@@ -36,7 +36,7 @@ def test_processing_service_cancellation(tmp_path: Path):
     service = ProcessingService()
     options = OcrOptions()
 
-    # محاكاة طلب الإلغاء
+    # Simulate cancellation request
     is_cancelled = True
     cancel_check = lambda: is_cancelled
 

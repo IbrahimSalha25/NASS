@@ -1,5 +1,5 @@
 """
-اختبارات محرك استخراج النصوص (OCR Engine).
+Tests for Optical Character Recognition engine (OcrEngine).
 """
 
 from pathlib import Path
@@ -10,7 +10,7 @@ from app.core.ocr_engine import OcrEngine
 
 
 def test_ocr_engine_status():
-    """التحقق من حالة محرك Tesseract واللغات المتوفرة."""
+    """Verify Tesseract OCR engine status and available languages."""
     engine = OcrEngine()
     status = engine.get_status()
 
@@ -22,7 +22,7 @@ def test_ocr_engine_status():
 
 
 def test_ocr_extract_english_text():
-    """التحقق من استخراج نص إنجليزي بنجاح وحساب الثقة والمدة."""
+    """Verify extracting English text, computing confidence, and measuring duration."""
     img = Image.new("RGB", (350, 80), color=(255, 255, 255))
     d = ImageDraw.Draw(img)
     d.text((20, 30), "NASS OCR 2026", fill=(0, 0, 0))
@@ -37,7 +37,7 @@ def test_ocr_extract_english_text():
 
 
 def test_ocr_invalid_file_path():
-    """التحقق من المعالجة الآمنة لملف غير موجود دون انهيار البرنامج."""
+    """Verify safe handling of non-existent file without raising uncaught exceptions."""
     engine = OcrEngine()
     res = engine.extract_text("non_existent_file.png", language="eng")
 

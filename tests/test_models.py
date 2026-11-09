@@ -1,5 +1,5 @@
 """
-اختبارات نماذج البيانات (Models) لنظام نَصّ (NASS).
+Tests for domain models (Models) in NASS.
 """
 
 from pathlib import Path
@@ -7,7 +7,7 @@ from app.core.models import DocumentResult, FileType, PageResult, ProcessingStat
 
 
 def test_page_result_defaults():
-    """اختبار القيم الافتراضية لنتيجة الصفحة."""
+    """Test default values of PageResult instance."""
     page = PageResult(page_number=1)
     assert page.page_number == 1
     assert page.text == ""
@@ -17,10 +17,10 @@ def test_page_result_defaults():
 
 
 def test_document_result_properties():
-    """اختبار حساب متوسط الثقة وتجميع النص الكامل للمستند."""
+    """Test average confidence computation and full text aggregation for DocumentResult."""
     p1 = PageResult(page_number=1, text="الصفحة الأولى", confidence=90.0)
     p2 = PageResult(page_number=2, text="Page Two", confidence=80.0)
-    p3 = PageResult(page_number=3, text="", confidence=0.0)  # صفحة فارغة
+    p3 = PageResult(page_number=3, text="", confidence=0.0)  # Empty page
 
     doc = DocumentResult(
         file_path=Path("sample.pdf"),
@@ -30,11 +30,11 @@ def test_document_result_properties():
         pages=[p1, p2, p3],
     )
 
-    # التحقق من النص الكامل
+    # Verify full text aggregation
     full = doc.full_text
     assert "الصفحة الأولى" in full
     assert "Page Two" in full
     assert "--- [فاصل الصفحات] ---" in full
 
-    # التحقق من متوسط الثقة (تجاهل الصفحات ذات الثقة الصفرية)
+    # Verify average confidence (ignoring zero-confidence pages)
     assert doc.average_confidence == 85.0

@@ -1,5 +1,5 @@
 """
-اختبارات وحدة لمدير حزم اللغات لنظام نَصّ (NASS).
+Unit tests for LanguageManager in NASS.
 """
 
 import tempfile
@@ -15,7 +15,7 @@ def test_list_installed_languages():
     mgr = LanguageManager()
     installed = mgr.list_installed_languages()
     assert isinstance(installed, list)
-    # tessdata يحوي ara و eng و osd افتراضياً
+    # tessdata contains ara, eng, and osd by default
     installed_codes = {lang.code for lang in installed}
     assert "ara" in installed_codes
     assert "eng" in installed_codes
@@ -26,7 +26,7 @@ def test_list_all_catalog_languages():
     catalog = mgr.list_all_catalog_languages()
     assert len(catalog) >= len(KNOWN_LANGUAGES)
 
-    # اختبار البحث
+    # Test search query functionality
     search_res = mgr.list_all_catalog_languages(search_query="عربية")
     assert any(x.code == "ara" for x in search_res)
 
@@ -64,8 +64,8 @@ def test_download_language_mock():
                 assert len(progress_calls) >= 2
                 assert (tmp_path / "fra.traineddata").exists()
 
-                # حذف اللغة بعد تثبيتها في المجلد المؤقت
-                # سنضيف لغة ثانية حتى لا يفشل فحص "اللغة الوحيدة"
+                # Delete language after installing in temporary directory
+                # Add a dummy second language so "single remaining language" check does not prevent deletion
                 (tmp_path / "dummy.traineddata").write_bytes(b"dummy")
                 del_success, del_msg = mgr.delete_language("fra")
                 assert del_success is True

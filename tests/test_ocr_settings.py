@@ -1,5 +1,5 @@
 """
-اختبارات الخيارات المتقدمة لـ OCR (PSM, OEM, DPI, Grayscale, Config).
+Tests for advanced OCR options (PSM, OEM, DPI, Grayscale, Config).
 """
 
 from PIL import Image
@@ -29,7 +29,7 @@ def test_image_processor_with_grayscale_option():
 def test_ocr_engine_with_custom_psm_and_oem():
     engine = OcrEngine()
     test_img = Image.new("RGB", (100, 30), color="white")
-    # اختبار استدعاء extract_text مع تخصيص PSM و OEM
+    # Test extract_text call with customized PSM and OEM values
     res = engine.extract_text(test_img, language="eng", psm=6, oem=3, extra_config="")
     assert res is not None
     assert res.page_number == 1
