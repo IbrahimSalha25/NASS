@@ -1,6 +1,6 @@
 """
 خدمة تنسيق معالجة المستندات والصور وإدارة تدفق العمل.
-مستقلة تماماً عن الواجهة الرسومية وتدعم الإلغاء والتقارير المرحلية.
+مستقلة تماماً عن الواجهة الرسومية وتدعم الإلغاء والتقارير المرحلية واستخراج المعادلات.
 """
 
 from __future__ import annotations
@@ -50,7 +50,6 @@ class ProcessingService:
 
         try:
             with Image.open(file_path) as raw_img:
-                # التأكد من نمط الألوان
                 img = raw_img.convert("RGB") if raw_img.mode not in ("RGB", "L") else raw_img.copy()
 
             # تطبيق التحسينات الاختيارية
@@ -68,6 +67,16 @@ class ProcessingService:
                 extra_config=options.tesseract_config,
                 page_number=1,
             )
+
+            # استخراج المعادلات الرياضية اختيارياً
+            if options.extract_math and page_res.status == ProcessingStatus.COMPLETED:
+                try:
+                    from app.core.math_engine import MathRecognitionService
+                    math_service = MathRecognitionService(preferred_engine=options.math_engine)
+                    eqs = math_service.extract_equations(image=processed_img, text_context=page_res.text)
+                    page_res.equations = [eq.latex for eq in eqs]
+                except Exception as m_err:
+                    logger.warning(f"تعذر استخراج المعادلات الرياضية من الصورة: {m_err}")
 
             doc_result.pages = [page_res]
             doc_result.status = page_res.status
@@ -110,42 +119,43 @@ class ProcessingService:
             status=ProcessingStatus.PROCESSING,
         )
 
-        # 1. فحص المستند الأساسي
         try:
-            total_pages, is_encrypted, _ = PdfProcessor.get_document_info(file_path)
-            doc_result.total_pages = total_pages
+            doc = fitz.open(str(file_path))
+        except Exception as e:
+            doc_result.status = ProcessingStatus.FAILED
+            doc_result.error_message = f"تعذر فتح ملف PDF: {e}"
+            doc_result.total_duration_seconds = time.time() - start_time
+            return doc_result
 
-            if is_encrypted:
+        try:
+            if doc.is_encrypted:
                 doc_result.status = ProcessingStatus.FAILED
-                doc_result.error_message = "ملف PDF محمي بكلمة مرور."
+                doc_result.error_message = "ملف PDF محمي بكلمة مرور وغير قابل للقراءة."
                 return doc_result
+
+            total_pages = len(doc)
+            doc_result.total_pages = total_pages
 
             if total_pages == 0:
                 doc_result.status = ProcessingStatus.FAILED
-                doc_result.error_message = "ملف PDF فارغ ولا يحتوي على صفحات."
+                doc_result.error_message = "ملف PDF لا يحتوي على أي صفحات."
                 return doc_result
-        except Exception as e:
-            doc_result.status = ProcessingStatus.FAILED
-            doc_result.error_message = f"تعذر قراءة ملف PDF: {e}"
-            return doc_result
 
-        # 2. فتح المستند ومعالجة الصفحات تتابعياً
-        doc = fitz.open(str(file_path))
-        try:
             for page_idx in range(total_pages):
-                # التحقق من طلب الإلغاء بين الصفحات
+                # فحص الإلغاء التعاوني بين الصفحات
                 if cancel_check and cancel_check():
-                    logger.info(f"تم إلغاء معالجة ملف PDF {file_path.name} عند الصفحة {page_idx + 1}")
+                    logger.info(f"تم إيقاف معالجة {file_path.name} بناءً على طلب الإلغاء.")
                     doc_result.status = ProcessingStatus.CANCELLED
                     break
 
                 page_num = page_idx + 1
                 page_start_time = time.time()
-                fitz_page = doc[page_idx]
                 page_result = PageResult(page_number=page_num, status=ProcessingStatus.PROCESSING)
 
                 try:
-                    # فحص النص المضمن إذا كان الخيار مفعلاً
+                    fitz_page = doc[page_idx]
+
+                    # 1. إذا طلب المستخدم محاولة استخراج النص المضمن أولاً
                     embedded_text = ""
                     if options.extract_embedded_first:
                         embedded_text = PdfProcessor.extract_embedded_text_page(fitz_page)
@@ -157,6 +167,16 @@ class ProcessingService:
                         page_result.confidence = 100.0
                         page_result.status = ProcessingStatus.COMPLETED
                         page_result.duration_seconds = time.time() - page_start_time
+
+                        # استخراج المعادلات اختيارياً من النص المضمن
+                        if options.extract_math:
+                            try:
+                                from app.core.math_engine import MathRecognitionService
+                                math_service = MathRecognitionService(preferred_engine=options.math_engine)
+                                eqs = math_service.extract_equations(text_context=page_result.text)
+                                page_result.equations = [eq.latex for eq in eqs]
+                            except Exception as m_err:
+                                logger.warning(f"تعذر استخراج المعادلات من الصفحة {page_num}: {m_err}")
                     else:
                         # تحويل الصفحة لصورة بدقة DPI المحددة
                         page_img = PdfProcessor.render_page_to_image(fitz_page, dpi=options.dpi)
@@ -173,6 +193,16 @@ class ProcessingService:
                             extra_config=options.tesseract_config,
                             page_number=page_num,
                         )
+
+                        # استخراج المعادلات اختيارياً
+                        if options.extract_math and page_result.status == ProcessingStatus.COMPLETED:
+                            try:
+                                from app.core.math_engine import MathRecognitionService
+                                math_service = MathRecognitionService(preferred_engine=options.math_engine)
+                                eqs = math_service.extract_equations(image=enhanced_img, text_context=page_result.text)
+                                page_result.equations = [eq.latex for eq in eqs]
+                            except Exception as m_err:
+                                logger.warning(f"تعذر استخراج المعادلات من الصفحة {page_num}: {m_err}")
 
                 except Exception as p_err:
                     logger.error(f"خطأ في معالجة الصفحة {page_num} من {file_path.name}: {p_err}")
