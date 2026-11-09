@@ -33,6 +33,17 @@ SUPPORTED_ALL_EXTENSIONS = SUPPORTED_IMAGE_EXTENSIONS | SUPPORTED_DOCUMENT_EXTEN
 
 def find_tesseract_executable() -> Optional[Path]:
     """البحث عن مسار Tesseract القابل للتنفيذ."""
+    # 0. التحقق من المسار المخصص المحفوظ في إعدادات التطبيق
+    try:
+        from app.core.settings_manager import SettingsManager
+        custom_path = SettingsManager.get_instance().get("tesseract_custom_path")
+        if custom_path:
+            p = Path(custom_path)
+            if p.is_file():
+                return p
+    except Exception:
+        pass
+
     env_tess = os.environ.get("TESSERACT_CMD")
     if env_tess:
         p = Path(env_tess)
@@ -52,6 +63,17 @@ def find_tesseract_executable() -> Optional[Path]:
 
 def find_tessdata_directory() -> Optional[Path]:
     """البحث عن مجلد ملفات اللغات (tessdata)."""
+    # 0. التحقق من المسار المخصص المحفوظ في إعدادات التطبيق
+    try:
+        from app.core.settings_manager import SettingsManager
+        custom_tessdata = SettingsManager.get_instance().get("tessdata_custom_path")
+        if custom_tessdata:
+            p = Path(custom_tessdata)
+            if p.is_dir() and list(p.glob("*.traineddata")):
+                return p
+    except Exception:
+        pass
+
     # 1. المجلد المحلي داخل المشروع إذا احتوى على ملفات
     if LOCAL_TESSDATA.is_dir():
         trained_files = list(LOCAL_TESSDATA.glob("*.traineddata"))
