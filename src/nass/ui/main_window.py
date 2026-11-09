@@ -28,6 +28,7 @@ from nass.ui.components.sidebar import SidebarWidget
 from nass.ui.styles import get_stylesheet
 from nass.ui.views.about_view import AboutView
 from nass.ui.views.app_settings_view import AppSettingsView
+from nass.ui.views.batch_folder_view import BatchFolderView
 from nass.ui.views.extract_view import ExtractView
 from nass.ui.views.history_view import HistoryView
 from nass.ui.views.home_view import HomeView
@@ -51,7 +52,7 @@ class MainWindow(QMainWindow):
         width = self.settings.get("window_width", 1200)
         height = self.settings.get("window_height", 800)
         self.resize(width, height)
-        self.setMinimumSize(980, 640)
+        self.setMinimumSize(880, 560)
 
         # Set application window icon
         logo_path = ASSETS_DIR / "images" / "logo_NASS.png"
@@ -93,19 +94,23 @@ class MainWindow(QMainWindow):
         self.extract_view = ExtractView(self)
         self.stack.addWidget(self.extract_view)
 
-        # Page 2: History view
+        # Page 2: Batch folder view
+        self.batch_folder_view = BatchFolderView(self)
+        self.stack.addWidget(self.batch_folder_view)
+
+        # Page 3: History view
         self.history_view = HistoryView(self)
         self.stack.addWidget(self.history_view)
 
-        # Page 3: OCR Settings view
+        # Page 4: OCR Settings view
         self.ocr_settings_view = OcrSettingsView(self)
         self.stack.addWidget(self.ocr_settings_view)
 
-        # Page 4: General App Settings view
+        # Page 5: General App Settings view
         self.app_settings_view = AppSettingsView(self)
         self.stack.addWidget(self.app_settings_view)
 
-        # Page 5: About view
+        # Page 6: About view
         self.about_view = AboutView(self)
         self.stack.addWidget(self.about_view)
 
@@ -118,11 +123,15 @@ class MainWindow(QMainWindow):
 
         # Home view transitions
         self.home_view.file_selected.connect(self._on_file_selected_from_home)
-        self.home_view.navigate_to_settings.connect(lambda: self.switch_page(3))
+        self.home_view.navigate_to_settings.connect(lambda: self.switch_page(4))
+        self.home_view.navigate_to_batch.connect(lambda: self.switch_page(2))
 
         # Extract view events
         self.extract_view.change_file_requested.connect(self._select_new_file)
         self.extract_view.btn_start.clicked.connect(self._bind_worker_to_history)
+
+        # Batch folder view events
+        self.batch_folder_view.btn_start.clicked.connect(self._bind_batch_worker_to_history)
 
         # History view re-scan
         self.history_view.rescan_requested.connect(self._on_file_selected_from_home)
@@ -159,6 +168,8 @@ class MainWindow(QMainWindow):
             self.home_view.retranslate_ui()
         if hasattr(self, "extract_view"):
             self.extract_view.retranslate_ui()
+        if hasattr(self, "batch_folder_view"):
+            self.batch_folder_view.retranslate_ui()
         if hasattr(self, "history_view"):
             self.history_view.retranslate_ui()
         if hasattr(self, "app_settings_view"):
@@ -212,6 +223,12 @@ class MainWindow(QMainWindow):
         if worker:
             worker.all_finished.connect(self._on_worker_finished_record_history)
 
+    def _bind_batch_worker_to_history(self) -> None:
+        """Binds active batch extraction worker completion to history view."""
+        worker = self.batch_folder_view.active_worker
+        if worker:
+            worker.file_finished.connect(lambda _, __, doc_res: self.history_view.add_record_from_result(doc_res))
+
     def _on_worker_finished_record_history(self, results: list[DocumentResult]) -> None:
         """Records completed extraction result in history."""
         if results:
@@ -219,6 +236,8 @@ class MainWindow(QMainWindow):
 
     def _on_settings_updated(self) -> None:
         """Synchronizes status across views after settings change."""
+        if hasattr(self, "history_view"):
+            self.history_view.apply_settings_limits()
         self.ocr_settings_view.refresh_all_data()
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:

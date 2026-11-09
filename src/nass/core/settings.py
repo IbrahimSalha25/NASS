@@ -42,6 +42,7 @@ class AppSettings:
     math_engine: str = "builtin"
 
     export_default_format: str = "txt"
+    max_history_records: int = 50
     remember_window_size: bool = True
     window_width: int = 1200
     window_height: int = 800

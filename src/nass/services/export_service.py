@@ -175,3 +175,59 @@ class ExportService:
         except Exception as e:
             logger.error(f"Failed to export LaTeX: {e}")
             raise IOError(f"Could not save LaTeX file: {e}")
+
+    @staticmethod
+    def export_to_csv(
+        documents: Union[DocumentResult, List[DocumentResult]],
+        output_path: Path | str,
+    ) -> Path:
+        """Export batch extraction summary and metrics to UTF-8 CSV with BOM for Excel."""
+        import csv
+
+        path = Path(output_path).resolve()
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        docs = [documents] if isinstance(documents, DocumentResult) else documents
+
+        try:
+            # utf-8-sig ensures Excel on Windows displays Arabic without encoding distortion
+            with open(path, "w", encoding="utf-8-sig", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    "اسم الملف",
+                    "المسار الكامل",
+                    "نوع الملف",
+                    "طريقة الاستخراج",
+                    "الحالة",
+                    "عدد الصفحات",
+                    "عدد الكلمات",
+                    "عدد الحروف",
+                    "متوسط الدقة (%)",
+                    "مدة المعالجة (ثانية)",
+                    "رسالة الخطأ (إن وجدت)",
+                ])
+
+                for doc in docs:
+                    full_txt = doc.full_text
+                    words = len(full_txt.split()) if full_txt else 0
+                    chars = len(full_txt) if full_txt else 0
+                    writer.writerow([
+                        doc.file_path.name,
+                        str(doc.file_path),
+                        doc.file_type.value.upper(),
+                        doc.method_display_name,
+                        doc.status.value,
+                        doc.total_pages,
+                        words,
+                        chars,
+                        f"{doc.average_confidence:.1f}",
+                        f"{getattr(doc, 'total_duration_seconds', 0.0):.2f}",
+                        doc.error_message or "",
+                    ])
+
+            logger.info(f"CSV report exported successfully: {path}")
+            return path
+        except Exception as e:
+            logger.error(f"Failed to export CSV: {e}")
+            raise IOError(f"Could not save CSV file: {e}")
+

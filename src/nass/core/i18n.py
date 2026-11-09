@@ -45,6 +45,10 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "ar": "استخراج النصوص",
         "en": "Extract Text",
     },
+    "nav_batch_folder": {
+        "ar": "استخراج من مجلد",
+        "en": "Batch Folder",
+    },
     "nav_history": {
         "ar": "سجل العمليات",
         "en": "History",
@@ -184,6 +188,202 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
     "extract_btn_export_docx": {
         "ar": "تصدير Word",
         "en": "Export Word",
+    },
+    "extract_options_title": {
+        "ar": "إعدادات استخراج المحتوى:",
+        "en": "Extraction Options:",
+    },
+    "extract_lbl_ocr_lang": {
+        "ar": "لغة التعرف (OCR):",
+        "en": "OCR Language:",
+    },
+    "extract_lang_both": {
+        "ar": "العربية + الإنجليزية (تلقائي)",
+        "en": "Arabic + English (Auto)",
+    },
+    "extract_lang_ara": {
+        "ar": "العربية فقط",
+        "en": "Arabic Only",
+    },
+    "extract_lang_eng": {
+        "ar": "الإنجليزية فقط",
+        "en": "English Only",
+    },
+    "extract_lbl_dpi": {
+        "ar": "دقة المعالجة:",
+        "en": "Processing DPI:",
+    },
+    "extract_dpi_std": {
+        "ar": "دقة قياسية موصى بها (300 DPI)",
+        "en": "Standard Recommended (300 DPI)",
+    },
+    "extract_dpi_fast": {
+        "ar": "دقة سريعة (150 DPI)",
+        "en": "Fast (150 DPI)",
+    },
+    "extract_dpi_ultra": {
+        "ar": "دقة فائقة (450 DPI)",
+        "en": "Ultra High (450 DPI)",
+    },
+    "extract_chk_enhance": {
+        "ar": "تحسين التباين وإزالة التشويش تلقائياً",
+        "en": "Enhance contrast & denoise automatically",
+    },
+    "extract_chk_math": {
+        "ar": "استخراج المعادلات الرياضية (LaTeX)",
+        "en": "Extract mathematical equations (LaTeX)",
+    },
+    "extract_chk_single_col": {
+        "ar": "معالجة الصفحة كعمود نصي واحد",
+        "en": "Process page as single text column",
+    },
+    "extract_lbl_preview": {
+        "ar": "معاينة الصفحة / المحتوى:",
+        "en": "Page / Content Preview:",
+    },
+    "extract_no_preview": {
+        "ar": "لا توجد معاينة حالياً",
+        "en": "No preview available currently",
+    },
+    "extract_tab_text": {
+        "ar": "النص المستخرج",
+        "en": "Extracted Text",
+    },
+    "extract_tab_math": {
+        "ar": "المعادلات (LaTeX)",
+        "en": "Formulas (LaTeX)",
+    },
+    "extract_tab_math_count": {
+        "ar": "المعادلات ({count})",
+        "en": "Formulas ({count})",
+    },
+    "extract_txt_placeholder": {
+        "ar": "سيظهر النص المستخرج هنا فور اكتمال المعالجة...",
+        "en": "Extracted text will appear here once processing completes...",
+    },
+    "extract_math_placeholder": {
+        "ar": "لا توجد معادلات رياضية مستخرجة في هذا الملف حتى الآن.",
+        "en": "No mathematical formulas extracted in this document yet.",
+    },
+    "extract_method_label": {
+        "ar": "طريقة المعالجة: {method}",
+        "en": "Processing Method: {method}",
+    },
+    "extract_file_meta_info": {
+        "ar": "النوع: {type} | الحجم: {size} | المجلد: {folder}",
+        "en": "Type: {type} | Size: {size} | Folder: {folder}",
+    },
+    "extract_meta_encrypted_pdf": {
+        "ar": "تنبيه: ملف PDF محمي بكلمة مرور وغير قابل للقراءة.",
+        "en": "Notice: PDF is password-protected and unreadable.",
+    },
+    "extract_file_ready": {
+        "ar": "الملف جاهز للاستخراج.",
+        "en": "File is ready for extraction.",
+    },
+    "extract_status_stopping": {
+        "ar": "جاري إيقاف المعالجة بأمان...",
+        "en": "Safely stopping processing...",
+    },
+    "extract_notice_title": {
+        "ar": "تنبيه",
+        "en": "Notice",
+    },
+    "extract_copied_all_msg": {
+        "ar": "تم نسخ النص كاملاً إلى الحافظة بنجاح.",
+        "en": "All text successfully copied to clipboard.",
+    },
+    "extract_copied_page_msg": {
+        "ar": "تم نسخ نص [{title}] إلى الحافظة.",
+        "en": "Text of [{title}] copied to clipboard.",
+    },
+    "extract_no_text_in_section": {
+        "ar": "لم نعثر على نص قابل للاستخراج في هذا القسم.",
+        "en": "No extractable text found in this section.",
+    },
+    "extract_no_text_export": {
+        "ar": "لم نعثر على نص قابل للاستخراج لتصديره.",
+        "en": "No extractable text available to export.",
+    },
+    "extract_export_txt_title": {
+        "ar": "حفظ النص المستخرج كـ TXT",
+        "en": "Save Extracted Text as TXT",
+    },
+    "extract_export_txt_filter": {
+        "ar": "ملف نصي (*.txt)",
+        "en": "Text file (*.txt)",
+    },
+    "extract_export_txt_success": {
+        "ar": "تم حفظ ملف TXT بنجاح في:\n{path}",
+        "en": "TXT file saved successfully at:\n{path}",
+    },
+    "extract_export_docx_title": {
+        "ar": "حفظ النص المستخرج كـ Word",
+        "en": "Save Extracted Text as Word",
+    },
+    "extract_export_docx_filter": {
+        "ar": "مستند Word (*.docx)",
+        "en": "Word Document (*.docx)",
+    },
+    "extract_export_docx_success": {
+        "ar": "تم حفظ مستند Word بنجاح في:\n{path}",
+        "en": "Word document saved successfully at:\n{path}",
+    },
+    "extract_export_error_title": {
+        "ar": "خطأ في الحفظ",
+        "en": "Save Error",
+    },
+    "extract_export_error_msg": {
+        "ar": "تعذر حفظ الملف: {err}",
+        "en": "Could not save file: {err}",
+    },
+    "extract_error_title": {
+        "ar": "خطأ في المعالجة",
+        "en": "Processing Error",
+    },
+    "extract_page_of_total": {
+        "ar": "الصفحة {page} من {total}",
+        "en": "Page {page} of {total}",
+    },
+    "extract_page_single": {
+        "ar": "صورة (1 من 1)",
+        "en": "Image (1 of 1)",
+    },
+    "extract_doc_digital": {
+        "ar": "مستند رقمي كامل",
+        "en": "Full Digital Document",
+    },
+    "extract_direct_doc_preview": {
+        "ar": "مستند رقمي مباشر ({type})\nسيتم استخراج النصوص مباشرة وبسرعة فائقة.",
+        "en": "Native digital document ({type})\nText will be extracted directly with high speed.",
+    },
+    "extract_preview_unavailable": {
+        "ar": "معاينة بصرية غير متوفرة لهذا الملف.",
+        "en": "Visual preview not available for this file.",
+    },
+    "extract_page_prev": {
+        "ar": "الصفحة السابقة",
+        "en": "Previous Page",
+    },
+    "extract_page_next": {
+        "ar": "الصفحة التالية",
+        "en": "Next Page",
+    },
+    "extract_stat_confidence_val": {
+        "ar": "متوسط الثقة: {conf:.1f}%",
+        "en": "Average Confidence: {conf:.1f}%",
+    },
+    "extract_stat_pages_fmt": {
+        "ar": "الصفحات / الأقسام: {pages}",
+        "en": "Pages / Sections: {pages}",
+    },
+    "extract_stat_words_fmt": {
+        "ar": "الكلمات: {words:,}",
+        "en": "Words: {words:,}",
+    },
+    "extract_stat_chars_fmt": {
+        "ar": "الحروف: {chars:,}",
+        "en": "Characters: {chars:,}",
     },
     "extract_preview_title": {
         "ar": "معاينة المستند والصفحات",
@@ -349,6 +549,18 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "ar": "تذكر أبعاد وموضع النافذة عند إعادة تشغيل البرنامج",
         "en": "Remember window geometry and size upon restart",
     },
+    "settings_lbl_max_history": {
+        "ar": "الحد الأقصى لسجلات الملفات في السجل:",
+        "en": "Max history records to keep:",
+    },
+    "settings_desc_max_history": {
+        "ar": "الاحتفاظ بآخر عدد محدد من الملفات التي تمت معالجتها (الافتراضي: 50)",
+        "en": "Keep the specified number of last processed documents (Default: 50)",
+    },
+    "history_clear_confirm": {
+        "ar": "هل أنت متأكد من رغبتك في مسح سجل العمليات الحالي؟",
+        "en": "Are you sure you want to clear current session history?",
+    },
     "settings_btn_save": {
         "ar": "حفظ الإعدادات",
         "en": "Save Settings",
@@ -384,6 +596,138 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
     "confirm_title": {
         "ar": "تأكيد",
         "en": "Confirmation",
+    },
+
+    # -------------------------------------------------------------
+    # Batch Folder Extraction View
+    # -------------------------------------------------------------
+    "batch_title": {
+        "ar": "استخراج النصوص من مجلد",
+        "en": "Batch Folder Text Extraction",
+    },
+    "batch_desc": {
+        "ar": "معالجة جماعية لكافة المستندات والصور داخل مجلد محدد وتصدير النتائج المجمعة",
+        "en": "Batch process all documents and images within a folder and export merged results",
+    },
+    "batch_btn_select_folder": {
+        "ar": "اختيار مجلد للبدء",
+        "en": "Select Folder to Start",
+    },
+    "batch_btn_change_folder": {
+        "ar": "تغيير المجلد",
+        "en": "Change Folder",
+    },
+    "batch_chk_recursive": {
+        "ar": "تضمين المجلدات الفرعية (فحص متكرر)",
+        "en": "Include subdirectories (Recursive scan)",
+    },
+    "batch_no_folder": {
+        "ar": "لم يتم اختيار مجلد بعد. حدد مجلداً لمعالجة ملفاته دفعة واحدة.",
+        "en": "No folder selected yet. Select a folder to batch process its files.",
+    },
+    "batch_folder_selected": {
+        "ar": "المجلد: {path}",
+        "en": "Folder: {path}",
+    },
+    "batch_files_discovered": {
+        "ar": "تم العثور على {count} ملفاً مدعوماً",
+        "en": "Found {count} supported files",
+    },
+    "batch_btn_start": {
+        "ar": "بدء المعالجة الجماعية",
+        "en": "Start Batch Processing",
+    },
+    "batch_btn_cancel": {
+        "ar": "إيقاف المعالجة",
+        "en": "Cancel Processing",
+    },
+    "batch_col_filename": {
+        "ar": "اسم الملف",
+        "en": "File Name",
+    },
+    "batch_col_type": {
+        "ar": "النوع",
+        "en": "Type",
+    },
+    "batch_col_status": {
+        "ar": "الحالة",
+        "en": "Status",
+    },
+    "batch_col_pages": {
+        "ar": "الصفحات",
+        "en": "Pages",
+    },
+    "batch_col_words": {
+        "ar": "الكلمات",
+        "en": "Words",
+    },
+    "batch_col_chars": {
+        "ar": "الحروف",
+        "en": "Characters",
+    },
+    "batch_col_actions": {
+        "ar": "معاينة ونسخ",
+        "en": "Preview & Copy",
+    },
+    "batch_tab_table": {
+        "ar": "جدول الملفات والنتائج",
+        "en": "Files & Results Table",
+    },
+    "batch_tab_merged": {
+        "ar": "النص المجمع الكامل",
+        "en": "Merged Extracted Text",
+    },
+    "batch_btn_copy_merged": {
+        "ar": "نسخ النص المجمع",
+        "en": "Copy Merged Text",
+    },
+    "batch_btn_export_txt": {
+        "ar": "تصدير TXT مجمع",
+        "en": "Export Merged TXT",
+    },
+    "batch_btn_export_docx": {
+        "ar": "تصدير Word مجمع",
+        "en": "Export Merged Word",
+    },
+    "batch_btn_export_csv": {
+        "ar": "تصدير تقرير CSV",
+        "en": "Export CSV Report",
+    },
+    "batch_export_csv_title": {
+        "ar": "حفظ تقرير المعالجة كـ CSV",
+        "en": "Save Processing Report as CSV",
+    },
+    "batch_export_csv_filter": {
+        "ar": "ملف جدول بيانات CSV (*.csv)",
+        "en": "CSV Spreadsheet (*.csv)",
+    },
+    "batch_export_csv_success": {
+        "ar": "تم حفظ تقرير CSV بنجاح في:\n{path}",
+        "en": "CSV report saved successfully at:\n{path}",
+    },
+    "batch_status_idle": {
+        "ar": "اختر مجلداً للبدء في استخراج النصوص الجماعي",
+        "en": "Select a folder to start batch text extraction",
+    },
+    "batch_status_scanning": {
+        "ar": "جاري فحص المجلد واستكشاف الملفات المدعومة...",
+        "en": "Scanning folder and discovering supported files...",
+    },
+    "batch_status_processing": {
+        "ar": "جاري استخراج النصوص من الملفات ({done} من {total})...",
+        "en": "Extracting text from files ({done} of {total})...",
+    },
+    "batch_status_completed": {
+        "ar": "اكتملت المعالجة الجماعية ({success} بنجاح، {failed} فشل).",
+        "en": "Batch processing completed ({success} succeeded, {failed} failed).",
+    },
+    "batch_status_empty_folder": {
+        "ar": "لا توجد ملفات مدعومة داخل هذا المجلد.",
+        "en": "No supported files found inside this folder.",
+    },
+    "batch_preview_dialog_title": {
+        "ar": "معاينة نص الملف: {name}",
+        "en": "File Text Preview: {name}",
     },
 }
 
