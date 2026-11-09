@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from nass.core.config import PROJECT_ROOT
+from nass.core.i18n import I18n
 from nass.utils.logger import logger
 
 # Configuration directory in user profile
@@ -21,6 +22,7 @@ SETTINGS_FILE_PATH = USER_CONFIG_DIR / "settings.json"
 @dataclass
 class AppSettings:
     """Application preferences and engine settings."""
+    app_language: str = "ar"
     tesseract_custom_path: Optional[str] = None
     tessdata_custom_path: Optional[str] = None
 
@@ -71,10 +73,14 @@ class SettingsManager:
                     data = json.load(f)
                 valid_fields = {k: v for k, v in data.items() if hasattr(AppSettings, k)}
                 logger.debug(f"Loaded settings from {self.config_file}")
-                return AppSettings(**valid_fields)
+                settings = AppSettings(**valid_fields)
+                I18n.set_current_language(settings.app_language)
+                return settings
             except Exception as e:
                 logger.warning(f"Failed to read settings file ({e}). Using defaults.")
-        return AppSettings()
+        default_settings = AppSettings()
+        I18n.set_current_language(default_settings.app_language)
+        return default_settings
 
     def save(self) -> bool:
         """Serialize current settings to the JSON configuration file."""
@@ -102,6 +108,8 @@ class SettingsManager:
         """Update a specific setting key and optionally persist to disk."""
         if hasattr(self.settings, key):
             setattr(self.settings, key, value)
+            if key == "app_language":
+                I18n.set_current_language(str(value))
             if auto_save:
                 self.save()
         else:

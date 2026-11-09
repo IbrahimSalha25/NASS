@@ -1,14 +1,15 @@
 """
-Right-hand navigation sidebar for NASS.
+Navigation sidebar for NASS.
 Provides quick switching between main views and displays live Tesseract engine status.
+Fully supports RTL (Right-to-Left) and LTR (Left-to-Right) layouts with internationalization.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QSize, Qt, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QButtonGroup,
@@ -21,21 +22,26 @@ from PySide6.QtWidgets import (
 )
 
 from nass.core.config import DEFAULT_LOGO_PATH
+from nass.core.i18n import I18n, tr
 from nass.ui.icons import AppIcons
 
 
 class SidebarWidget(QFrame):
-    """Right-side navigation bar with branding and active engine status badge."""
+    """
+    Navigation sidebar with branding, view switcher buttons, and live engine status.
+    """
 
     page_changed = Signal(int)
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.setObjectName("sidebarFrame")
         self.setFixedWidth(250)
+        self._last_installed: bool = False
+        self._last_version: Optional[str] = None
         self._init_ui()
 
-    def _init_ui(self):
+    def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 20, 12, 18)
         layout.setSpacing(6)
@@ -55,12 +61,12 @@ class SidebarWidget(QFrame):
 
         title_box = QVBoxLayout()
         title_box.setSpacing(1)
-        app_title = QLabel("نَصّ | NASS")
-        app_title.setObjectName("sidebarLogoTitle")
-        app_slogan = QLabel("حيث تتحول الصور إلى كلمات.")
-        app_slogan.setObjectName("sidebarLogoSub")
-        title_box.addWidget(app_title)
-        title_box.addWidget(app_slogan)
+        self.lbl_app_title = QLabel(tr("app_name"))
+        self.lbl_app_title.setObjectName("sidebarLogoTitle")
+        self.lbl_app_slogan = QLabel(tr("app_slogan"))
+        self.lbl_app_slogan.setObjectName("sidebarLogoSub")
+        title_box.addWidget(self.lbl_app_title)
+        title_box.addWidget(self.lbl_app_slogan)
 
         header_layout.addLayout(title_box)
         header_layout.addStretch()
@@ -72,22 +78,27 @@ class SidebarWidget(QFrame):
         self.btn_group = QButtonGroup(self)
         self.btn_group.setExclusive(True)
 
-        self.buttons = []
-        nav_items = [
-            ("الرئيسية", AppIcons.home("#E2E8F0")),
-            ("استخراج النصوص", AppIcons.ocr("#E2E8F0")),
-            ("سجل العمليات", AppIcons.history("#E2E8F0")),
-            ("إعدادات OCR", AppIcons.ocr_settings("#E2E8F0")),
-            ("إعدادات التطبيق", AppIcons.app_settings("#E2E8F0")),
-            ("حول التطبيق", AppIcons.about("#E2E8F0")),
+        self.buttons: List[QPushButton] = []
+        self.nav_keys = [
+            ("nav_home", AppIcons.home("#E2E8F0")),
+            ("nav_extract", AppIcons.ocr("#E2E8F0")),
+            ("nav_history", AppIcons.history("#E2E8F0")),
+            ("nav_ocr_settings", AppIcons.ocr_settings("#E2E8F0")),
+            ("nav_app_settings", AppIcons.app_settings("#E2E8F0")),
+            ("nav_about", AppIcons.about("#E2E8F0")),
         ]
 
-        for idx, (title, icon) in enumerate(nav_items):
-            btn = QPushButton(f"  {title}")
+        direction = Qt.RightToLeft if I18n.is_rtl() else Qt.LeftToRight
+        self.setLayoutDirection(direction)
+
+        for idx, (key, icon) in enumerate(self.nav_keys):
+            btn = QPushButton(f"  {tr(key)}")
             btn.setObjectName("sidebarButton")
             btn.setCheckable(True)
             btn.setIcon(icon)
+            btn.setIconSize(QSize(18, 18))
             btn.setCursor(Qt.PointingHandCursor)
+            btn.setLayoutDirection(direction)
             self.btn_group.addButton(btn, idx)
             layout.addWidget(btn)
             self.buttons.append(btn)
@@ -106,28 +117,49 @@ class SidebarWidget(QFrame):
         status_layout.setContentsMargins(4, 4, 4, 4)
         status_layout.setSpacing(4)
 
-        self.lbl_engine_title = QLabel("حالة Tesseract OCR:")
+        self.lbl_engine_title = QLabel(tr("engine_status_title"))
         self.lbl_engine_title.setStyleSheet("color: #94A3B8; font-size: 11px; font-weight: bold;")
-        self.lbl_engine_status = QLabel("جاري الفحص...")
+        self.lbl_engine_status = QLabel(tr("engine_status_checking"))
         self.lbl_engine_status.setStyleSheet("color: #10B981; font-size: 12px; font-weight: bold;")
 
         status_layout.addWidget(self.lbl_engine_title)
         status_layout.addWidget(self.lbl_engine_status)
         layout.addWidget(self.status_box)
 
-    def _on_button_clicked(self, page_id: int):
+    def retranslate_ui(self) -> None:
+        """Retranslates all text and adjusts layout direction for active language."""
+        direction = Qt.RightToLeft if I18n.is_rtl() else Qt.LeftToRight
+        self.setLayoutDirection(direction)
+
+        self.lbl_app_title.setText(tr("app_name"))
+        self.lbl_app_slogan.setText(tr("app_slogan"))
+        self.lbl_engine_title.setText(tr("engine_status_title"))
+
+        for idx, (key, _) in enumerate(self.nav_keys):
+            if idx < len(self.buttons):
+                btn = self.buttons[idx]
+                btn.setText(f"  {tr(key)}")
+                btn.setLayoutDirection(direction)
+
+        self.update_engine_status(self._last_installed, self._last_version)
+
+    def _on_button_clicked(self, page_id: int) -> None:
         self.page_changed.emit(page_id)
 
-    def set_active_page(self, page_id: int):
+    def set_active_page(self, page_id: int) -> None:
         if 0 <= page_id < len(self.buttons):
             self.buttons[page_id].setChecked(True)
 
-    def update_engine_status(self, is_installed: bool, version: Optional[str] = None):
+    def update_engine_status(self, is_installed: bool, version: Optional[str] = None) -> None:
         """Update bottom status badge based on Tesseract availability."""
+        self._last_installed = is_installed
+        self._last_version = version
+
         if is_installed:
-            ver_text = f"v{version}" if version else "جاهز"
-            self.lbl_engine_status.setText(f"جاهز للعمل ({ver_text})")
+            ver_text = f"v{version}" if version else ""
+            ready_txt = tr("engine_status_ready")
+            self.lbl_engine_status.setText(f"{ready_txt} ({ver_text})" if ver_text else ready_txt)
             self.lbl_engine_status.setStyleSheet("color: #10B981; font-size: 12px; font-weight: bold;")
         else:
-            self.lbl_engine_status.setText("غير مثبت أو غير مكتشف")
+            self.lbl_engine_status.setText(tr("engine_status_not_installed"))
             self.lbl_engine_status.setStyleSheet("color: #EF4444; font-size: 12px; font-weight: bold;")

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QClipboard, QGuiApplication, QImage, QPixmap
+from PySide6.QtGui import QClipboard, QDragEnterEvent, QDropEvent, QGuiApplication, QImage, QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from nass.core.i18n import I18n, tr
 from nass.core.models import (
     DocumentResult,
     ExtractionMethod,
@@ -52,6 +53,7 @@ class ExtractView(QWidget):
 
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
+        self.setAcceptDrops(True)
         self.current_file: Optional[Path] = None
         self.current_doc_result: Optional[DocumentResult] = None
         self.active_worker: Optional[OcrWorker] = None
@@ -97,10 +99,10 @@ class ExtractView(QWidget):
         fh_layout.addLayout(meta_box)
         fh_layout.addStretch()
 
-        btn_change = QPushButton("اختيار ملف آخر")
-        btn_change.setCursor(Qt.PointingHandCursor)
-        btn_change.clicked.connect(self._select_another_file)
-        fh_layout.addWidget(btn_change)
+        self.btn_change = QPushButton("اختيار ملف آخر")
+        self.btn_change.setCursor(Qt.PointingHandCursor)
+        self.btn_change.clicked.connect(self._select_another_file)
+        fh_layout.addWidget(self.btn_change)
 
         main_layout.addWidget(file_header)
 
@@ -551,15 +553,59 @@ class ExtractView(QWidget):
                 QMessageBox.critical(self, "خطأ في الحفظ", f"تعذر حفظ الملف: {e}")
 
     def _export_docx(self):
-        if not self.current_doc_result:
-            QMessageBox.information(self, "تنبيه", "يرجى استخراج المحتوى أولاً قبل التصدير إلى Word.")
+        text = self.txt_output.toPlainText().strip()
+        if not text:
+            QMessageBox.information(self, "تنبيه", "لم نعثر على نص قابل للاستخراج لتصديره.")
             return
 
         default_name = f"{self.current_file.stem}_extracted.docx" if self.current_file else "extracted.docx"
-        path, _ = QFileDialog.getSaveFileName(self, "تصدير المستند كـ Word", default_name, "مستند Word (*.docx)")
+        path, _ = QFileDialog.getSaveFileName(self, "حفظ النص المستخرج كـ Word", default_name, "مستند Word (*.docx)")
         if path:
             try:
-                ExportService.export_to_docx(self.current_doc_result, Path(path))
-                QMessageBox.information(self, "تم التصدير", f"تم إنشاء مستند Word بنجاح في:\n{path}")
+                if self.current_doc_result:
+                    ExportService.export_to_docx(self.current_doc_result, Path(path))
+                else:
+                    from nass.core.models import DocumentResult, PageResult
+                    dummy_page = PageResult(page_number=1, text=text)
+                    doc_res = DocumentResult(
+                        file_path=self.current_file or Path("extracted.docx"),
+                        pages=[dummy_page],
+                    )
+                    ExportService.export_to_docx(doc_res, Path(path))
+                QMessageBox.information(self, "تم التصدير", f"تم حفظ مستند Word بنجاح في:\n{path}")
             except Exception as e:
-                QMessageBox.critical(self, "خطأ في التصدير", f"تعذر حفظ مستند Word: {e}")
+                QMessageBox.critical(self, "خطأ في الحفظ", f"تعذر حفظ الملف: {e}")
+
+    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event: QDropEvent) -> None:
+        urls = event.mimeData().urls()
+        if not urls:
+            return
+        file_path = Path(urls[0].toLocalFile()).resolve()
+        valid, _ = FileUtils.is_valid_file(file_path)
+        if valid:
+            self.load_file(file_path)
+            event.acceptProposedAction()
+
+    def retranslate_ui(self) -> None:
+        """Updates text elements based on current application language."""
+        direction = Qt.RightToLeft if I18n.is_rtl() else Qt.LeftToRight
+        self.setLayoutDirection(direction)
+
+        if hasattr(self, "btn_change"):
+            self.btn_change.setText(tr("extract_btn_change"))
+        self.btn_start.setText(tr("extract_btn_start"))
+        self.btn_cancel.setText(tr("extract_btn_stop"))
+        self.btn_copy_all.setText(tr("extract_btn_copy_all"))
+        self.btn_copy_page.setText(tr("extract_btn_copy_page"))
+        self.btn_export_txt.setText(tr("extract_btn_export_txt"))
+        self.btn_export_docx.setText(tr("extract_btn_export_docx"))
+
+        if not self.current_file:
+            self.lbl_file_name.setText(tr("extract_no_file_title"))
+            self.lbl_file_meta.setText(tr("extract_no_file_desc"))
+            self.lbl_progress_status.setText(tr("extract_status_waiting"))
+

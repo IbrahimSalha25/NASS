@@ -1,7 +1,9 @@
 """
 Visual design styles and QSS stylesheet for NASS.
-Unified modern design: Deep navy blue with calm purple accents and full RTL alignment.
+Unified modern design: Deep navy blue with calm purple accents and full RTL/LTR support.
 """
+
+from __future__ import annotations
 
 COLOR_SIDEBAR_BG = "#0F172A"       # Deep night navy slate for sidebar
 COLOR_SIDEBAR_HOVER = "#1E293B"    # Hover effect for sidebar items
@@ -31,7 +33,24 @@ COLOR_WARNING_BG = "#FFFBEB"
 COLOR_ERROR = "#EF4444"
 COLOR_ERROR_BG = "#FEF2F2"
 
-APP_STYLESHEET = f"""
+
+def get_stylesheet(is_rtl: bool = True) -> str:
+    """
+    Generates application stylesheet tailored for RTL (Arabic) or LTR (English) layout.
+    """
+    sidebar_border = (
+        "border-left: 1px solid #1E293B; border-right: none;"
+        if is_rtl else
+        "border-right: 1px solid #1E293B; border-left: none;"
+    )
+    btn_align = "text-align: right;" if is_rtl else "text-align: left;"
+    btn_active_border = (
+        f"border-right: 4px solid {COLOR_ACCENT}; border-left: none;"
+        if is_rtl else
+        f"border-left: 4px solid {COLOR_ACCENT}; border-right: none;"
+    )
+
+    return f"""
 /* Universal widget settings with Arabic font cascade */
 QWidget {{
     background-color: {COLOR_BG};
@@ -44,11 +63,10 @@ QMainWindow {{
     background-color: {COLOR_BG};
 }}
 
-/* Right sidebar container */
+/* Sidebar container */
 QFrame#sidebarFrame {{
     background-color: {COLOR_SIDEBAR_BG};
-    border-left: 1px solid #1E293B;
-    border-right: none;
+    {sidebar_border}
     padding: 0px;
 }}
 
@@ -70,11 +88,11 @@ QPushButton#sidebarButton {{
     color: {COLOR_SIDEBAR_TEXT};
     border: none;
     border-radius: 8px;
-    padding: 10px 16px;
+    padding: 10px 14px;
     font-size: 13px;
     font-weight: 500;
-    text-align: right;
-    margin: 2px 8px;
+    {btn_align}
+    margin: 2px 6px;
 }}
 
 QPushButton#sidebarButton:hover {{
@@ -86,7 +104,7 @@ QPushButton#sidebarButton:checked {{
     background-color: {COLOR_SIDEBAR_ACTIVE};
     color: #FFFFFF;
     font-weight: bold;
-    border-right: 4px solid {COLOR_ACCENT};
+    {btn_active_border}
 }}
 
 /* Card containers */
@@ -112,9 +130,9 @@ QFrame#dropZone {{
     padding: 28px;
 }}
 
-QFrame#dropZone:hover {{
+QFrame#dropZone:hover, QFrame#dropZone[dragOver="true"] {{
     border-color: {COLOR_PRIMARY};
-    background-color: #F1F5F9;
+    background-color: #EFF6FF;
 }}
 
 /* Buttons */
@@ -128,12 +146,8 @@ QPushButton {{
 }}
 
 QPushButton:hover {{
-    background-color: #F1F5F9;
-    border-color: #CBD5E1;
-}}
-
-QPushButton:pressed {{
-    background-color: #E2E8F0;
+    background-color: #F8FAFC;
+    border-color: #94A3B8;
 }}
 
 QPushButton#primaryButton {{
@@ -141,9 +155,6 @@ QPushButton#primaryButton {{
     color: #FFFFFF;
     border: none;
     font-weight: bold;
-    font-size: 14px;
-    padding: 10px 22px;
-    border-radius: 8px;
 }}
 
 QPushButton#primaryButton:hover {{
@@ -154,82 +165,52 @@ QPushButton#primaryButton:pressed {{
     background-color: {COLOR_PRIMARY_ACTIVE};
 }}
 
-QPushButton#primaryButton:disabled {{
-    background-color: #94A3B8;
-    color: #F8FAFC;
-}}
-
 QPushButton#dangerButton {{
-    background-color: {COLOR_ERROR_BG};
-    color: {COLOR_ERROR};
-    border: 1px solid #FECACA;
-    font-weight: bold;
-    padding: 8px 18px;
-    border-radius: 6px;
+    background-color: #EF4444;
+    color: #FFFFFF;
+    border: none;
 }}
 
 QPushButton#dangerButton:hover {{
-    background-color: #FEE2E2;
+    background-color: #DC2626;
 }}
 
-QPushButton#accentButton {{
-    background-color: {COLOR_ACCENT};
-    color: #FFFFFF;
-    border: none;
-    font-weight: bold;
-    padding: 8px 18px;
-    border-radius: 6px;
-}}
-
-QPushButton#accentButton:hover {{
-    background-color: #6D28D9;
-}}
-
-/* Inputs & Form elements */
-QLineEdit, QComboBox, QSpinBox {{
+/* Inputs & Combo */
+QLineEdit, QTextEdit, QPlainTextEdit, QComboBox, QSpinBox {{
     background-color: #FFFFFF;
     border: 1px solid {COLOR_BORDER};
     border-radius: 6px;
-    padding: 7px 10px;
+    padding: 6px 10px;
     color: {COLOR_TEXT};
 }}
 
-QLineEdit:focus, QComboBox:focus, QSpinBox:focus {{
-    border-color: {COLOR_BORDER_FOCUS};
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QComboBox:focus, QSpinBox:focus {{
+    border-color: {COLOR_PRIMARY};
 }}
 
 QComboBox::drop-down {{
     border: none;
-    padding-left: 10px;
-}}
-
-/* Text Editors */
-QTextEdit {{
-    background-color: #FFFFFF;
-    border: 1px solid {COLOR_BORDER};
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 14px;
-    line-height: 1.6;
-    selection-background-color: #BFDBFE;
+    padding-left: 6px;
+    padding-right: 6px;
 }}
 
 /* Progress Bar */
 QProgressBar {{
     background-color: #E2E8F0;
-    border: none;
-    border-radius: 6px;
-    height: 10px;
+    border-radius: 4px;
     text-align: center;
-    color: transparent;
+    color: {COLOR_TEXT};
+    font-size: 11px;
+    font-weight: bold;
+    height: 12px;
 }}
 
 QProgressBar::chunk {{
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 {COLOR_PRIMARY}, stop:1 {COLOR_ACCENT});
-    border-radius: 6px;
+    background-color: {COLOR_PRIMARY};
+    border-radius: 4px;
 }}
 
-/* Tables */
+/* Table Widget */
 QTableWidget {{
     background-color: #FFFFFF;
     border: 1px solid {COLOR_BORDER};
@@ -239,38 +220,21 @@ QTableWidget {{
 
 QHeaderView::section {{
     background-color: #F8FAFC;
-    color: {COLOR_TEXT_MUTED};
-    font-weight: bold;
+    color: #475569;
+    padding: 8px;
     border: none;
     border-bottom: 1px solid {COLOR_BORDER};
-    padding: 8px;
-}}
-
-/* Tabs */
-QTabWidget::pane {{
-    border: 1px solid {COLOR_BORDER};
-    border-radius: 8px;
-    background-color: #FFFFFF;
-    top: -1px;
-}}
-
-QTabBar::tab {{
-    background-color: #F1F5F9;
-    color: {COLOR_TEXT_MUTED};
-    border: 1px solid {COLOR_BORDER};
-    border-bottom: none;
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
-    padding: 9px 18px;
-    margin-left: 2px;
-    font-weight: 500;
-}}
-
-QTabBar::tab:selected {{
-    background-color: #FFFFFF;
-    color: {COLOR_PRIMARY};
     font-weight: bold;
-    border-bottom: 2px solid {COLOR_PRIMARY};
+    font-size: 12px;
+}}
+
+QTableWidget::item {{
+    padding: 6px;
+}}
+
+QTableWidget::item:selected {{
+    background-color: #EFF6FF;
+    color: {COLOR_PRIMARY};
 }}
 
 /* ScrollBars */
@@ -282,11 +246,41 @@ QScrollBar:vertical {{
 
 QScrollBar::handle:vertical {{
     background: #CBD5E1;
-    min-height: 24px;
+    min-height: 20px;
     border-radius: 4px;
 }}
 
 QScrollBar::handle:vertical:hover {{
     background: #94A3B8;
 }}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+    height: 0px;
+}}
+
+QTabWidget::pane {{
+    border: 1px solid {COLOR_BORDER};
+    background: {COLOR_CARD};
+    border-radius: 8px;
+}}
+
+QTabBar::tab {{
+    background: #E2E8F0;
+    color: #475569;
+    padding: 8px 16px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    margin-right: 2px;
+    font-weight: 500;
+}}
+
+QTabBar::tab:selected {{
+    background: {COLOR_PRIMARY};
+    color: #FFFFFF;
+    font-weight: bold;
+}}
 """
+
+
+# Default stylesheet (RTL)
+APP_STYLESHEET = get_stylesheet(is_rtl=True)
