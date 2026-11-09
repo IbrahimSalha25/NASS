@@ -68,7 +68,7 @@ class HistoryView(QWidget):
 
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 12, 16, 12)
+        layout.setContentsMargins(14, 12, 14, 12)
         layout.setSpacing(10)
 
         # Header bar
@@ -225,7 +225,7 @@ class HistoryView(QWidget):
                 status_item.setForeground(Qt.red)
             self.table.setItem(row, 5, status_item)
 
-            # Actions widget with Re-scan and Copy buttons
+            # Actions widget with Re-scan, Copy, and Delete buttons
             actions_widget = QWidget()
             aw_layout = QHBoxLayout(actions_widget)
             aw_layout.setContentsMargins(4, 2, 4, 2)
@@ -251,9 +251,35 @@ class HistoryView(QWidget):
             )
             btn_copy.clicked.connect(lambda _, t=rec.text_content: self._copy_text(t))
 
+            btn_delete = QPushButton(tr("history_btn_delete"))
+            btn_delete.setIcon(AppIcons.trash("#EF4444"))
+            btn_delete.setCursor(Qt.PointingHandCursor)
+            btn_delete.setFixedHeight(26)
+            btn_delete.setStyleSheet(
+                "background-color: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; "
+                "border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 500;"
+            )
+            btn_delete.clicked.connect(lambda _, r=rec: self._delete_single_record(r))
+
             aw_layout.addWidget(btn_rescan)
             aw_layout.addWidget(btn_copy)
+            aw_layout.addWidget(btn_delete)
             self.table.setCellWidget(row, 6, actions_widget)
+
+    def _delete_single_record(self, rec: HistoryRecord) -> None:
+        """Deletes a single history record after user confirmation."""
+        reply = QMessageBox.question(
+            self,
+            tr("history_btn_delete"),
+            tr("history_delete_confirm"),
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if reply == QMessageBox.Yes:
+            if rec in self.records:
+                self.records.remove(rec)
+                self._save_history()
+                self._refresh_table()
 
     def _rescan_record(self, rec: HistoryRecord) -> None:
         """

@@ -101,6 +101,8 @@ class SidebarWidget(QFrame):
 
         # 1. Header with Logo, Title, and Official Slogan
         header_container = QWidget()
+        header_container.setObjectName("sidebarHeaderContainer")
+        header_container.setStyleSheet("background: transparent;")
         header_layout = QHBoxLayout(header_container)
         header_layout.setContentsMargins(16, 0, 16, 0)
         header_layout.setSpacing(10)
@@ -162,21 +164,20 @@ class SidebarWidget(QFrame):
 
         # 3. Bottom engine status card
         status_container = QWidget()
+        status_container.setStyleSheet("background: transparent;")
         sc_layout = QVBoxLayout(status_container)
         sc_layout.setContentsMargins(12, 0, 12, 0)
 
         self.status_box = QFrame()
-        self.status_box.setStyleSheet(
-            "background-color: #1E293B; border-radius: 8px; padding: 10px;"
-        )
+        self.status_box.setObjectName("sidebarStatusCard")
         status_layout = QVBoxLayout(self.status_box)
-        status_layout.setContentsMargins(6, 6, 6, 6)
+        status_layout.setContentsMargins(8, 8, 8, 8)
         status_layout.setSpacing(4)
 
         self.lbl_engine_title = QLabel(tr("engine_status_title"))
         self.lbl_engine_title.setStyleSheet("color: #94A3B8; font-size: 11px; font-weight: bold; background: transparent;")
         self.lbl_engine_status = QLabel(tr("engine_status_checking"))
-        self.lbl_engine_status.setStyleSheet("color: #10B981; font-size: 12px; font-weight: bold; background: transparent;")
+        self.lbl_engine_status.setStyleSheet("color: #94A3B8; font-size: 12px; font-weight: bold; background: transparent;")
 
         status_layout.addWidget(self.lbl_engine_title)
         status_layout.addWidget(self.lbl_engine_status)
@@ -209,7 +210,7 @@ class SidebarWidget(QFrame):
             self.buttons[page_id].setChecked(True)
 
     def update_engine_status(self, is_installed: bool, version: Optional[str] = None) -> None:
-        """Update bottom status badge based on Tesseract availability."""
+        """Update bottom status badge based on Tesseract availability with subtle semantic styling."""
         self._last_installed = is_installed
         self._last_version = version
 
@@ -217,7 +218,13 @@ class SidebarWidget(QFrame):
             ver_text = f"v{version}" if version else ""
             ready_txt = tr("engine_status_ready")
             self.lbl_engine_status.setText(f"{ready_txt} ({ver_text})" if ver_text else ready_txt)
-            self.lbl_engine_status.setStyleSheet("color: #10B981; font-size: 12px; font-weight: bold; background: transparent;")
+            self.lbl_engine_status.setStyleSheet("color: #34D399; font-size: 12px; font-weight: bold; background: transparent;")
+            self.status_box.setStyleSheet(
+                "background-color: rgba(6, 78, 59, 0.35); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 6px 8px;"
+            )
         else:
             self.lbl_engine_status.setText(tr("engine_status_not_installed"))
-            self.lbl_engine_status.setStyleSheet("color: #EF4444; font-size: 12px; font-weight: bold; background: transparent;")
+            self.lbl_engine_status.setStyleSheet("color: #F87171; font-size: 12px; font-weight: bold; background: transparent;")
+            self.status_box.setStyleSheet(
+                "background-color: rgba(127, 29, 29, 0.35); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 6px 8px;"
+            )

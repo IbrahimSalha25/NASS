@@ -67,6 +67,9 @@ class MainWindow(QMainWindow):
         initial_lang = self.settings.get("app_language", "ar")
         self.apply_language(initial_lang)
 
+        # Query and refresh live Tesseract engine status in sidebar and home view
+        self.refresh_engine_status()
+
         logger.info("MainWindow initialized successfully.")
 
     def _init_ui(self) -> None:
@@ -174,6 +177,20 @@ class MainWindow(QMainWindow):
             self.history_view.retranslate_ui()
         if hasattr(self, "app_settings_view"):
             self.app_settings_view.retranslate_ui()
+        if hasattr(self, "about_view"):
+            self.about_view.retranslate_ui()
+
+    def refresh_engine_status(self) -> None:
+        """Checks and updates Tesseract OCR status in sidebar and home view."""
+        status = self.tess_mgr.get_engine_status()
+        is_inst = status.get("is_installed", False)
+        ver = status.get("version")
+        langs = status.get("available_languages", [])
+
+        if hasattr(self, "sidebar"):
+            self.sidebar.update_engine_status(is_inst, ver)
+        if hasattr(self, "home_view"):
+            self.home_view.update_engine_info(is_inst, ver, langs)
 
     def switch_page(self, page_index: int) -> None:
         """
@@ -239,6 +256,7 @@ class MainWindow(QMainWindow):
         if hasattr(self, "history_view"):
             self.history_view.apply_settings_limits()
         self.ocr_settings_view.refresh_all_data()
+        self.refresh_engine_status()
 
     def dragEnterEvent(self, event: QDragEnterEvent) -> None:
         if event.mimeData().hasUrls():

@@ -489,6 +489,14 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "ar": "إعادة المسح",
         "en": "Re-scan",
     },
+    "history_btn_delete": {
+        "ar": "حذف",
+        "en": "Delete",
+    },
+    "history_delete_confirm": {
+        "ar": "هل أنت متأكد من رغبتك في حذف هذا السجل؟",
+        "en": "Are you sure you want to delete this record?",
+    },
     "history_file_same_msg": {
         "ar": "المسار ما زال مسجلاً:\n{path}\n\nسيتم فتح الملف في شاشة الاستخراج لإعادة معالجته دون الحاجة لتخزين نسخ منه.",
         "en": "File path is unchanged:\n{path}\n\nThe file will now open in the Extract view for re-processing without storing duplicates.",
@@ -503,7 +511,64 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
     },
 
     # -------------------------------------------------------------
-    # App Settings View
+    # About View
+    # -------------------------------------------------------------
+    "about_title": {
+        "ar": "حول التطبيق",
+        "en": "About Application",
+    },
+    "about_desc": {
+        "ar": "معلومات المشروع، بطاقة المطور، وضمانات الخصوصية والأمان",
+        "en": "Project info, developer card, privacy and security guarantees",
+    },
+    "about_app_subtitle": {
+        "ar": "التطبيق الذكي والشامل لاستخراج النصوص من المستندات والصور محلياً",
+        "en": "Smart comprehensive local document & image text extractor",
+    },
+    "about_dev_heading": {
+        "ar": "بطاقة المطور",
+        "en": "Developer Profile",
+    },
+    "about_dev_name": {
+        "ar": "إبراهيم صالحة | Ibrahim Salha",
+        "en": "Ibrahim Salha | إبراهيم صالحة",
+    },
+    "about_dev_role": {
+        "ar": "طالب هندسة أنظمة ذكية وحاسوب • مهتم بالذكاء الاصطناعي ومعالجة البيانات والرؤية الحاسوبية",
+        "en": "Intelligent Systems & Computer Engineering Student • AI & Computer Vision Enthusiast",
+    },
+    "about_btn_github": {
+        "ar": "حساب GitHub",
+        "en": "GitHub Profile",
+    },
+    "about_btn_linkedin": {
+        "ar": "حساب LinkedIn",
+        "en": "LinkedIn Profile",
+    },
+    "about_btn_email": {
+        "ar": "البريد الإلكتروني",
+        "en": "Email Contact",
+    },
+    "about_btn_repo": {
+        "ar": "مستودع المشروع على GitHub",
+        "en": "Project GitHub Repository",
+    },
+    "about_project_info_title": {
+        "ar": "معلومات المشروع والمستودع",
+        "en": "Project & Repository Information",
+    },
+    "about_project_repo_desc": {
+        "ar": "مشروع نَصّ (NASS) مفتوح المصدر بالكامل ومتاح للمجتمع البرمجي تحت رخصة MIT.",
+        "en": "NASS is fully open-source and available to the community under the MIT License.",
+    },
+    "about_privacy_title": {
+        "ar": "ضمان الخصوصية والمعالجة المحلية بنسبة 100%",
+        "en": "100% Local Processing & Privacy Guarantee",
+    },
+    "about_tech_title": {
+        "ar": "التقنيات والمكتبات المستخدمة",
+        "en": "Technologies & Libraries",
+    },
     # -------------------------------------------------------------
     "settings_title": {
         "ar": "إعدادات التطبيق العامة",

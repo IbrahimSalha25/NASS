@@ -51,7 +51,50 @@ def get_stylesheet(is_rtl: bool = True) -> str:
     )
 
     return f"""
-/* Universal widget settings with Arabic font cascade */
+/* Checkboxes & Radio Buttons */
+QCheckBox {{
+    color: {COLOR_TEXT};
+    spacing: 8px;
+    font-size: 13px;
+    font-weight: 500;
+}}
+
+QCheckBox::indicator {{
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid #94A3B8;
+    background-color: #FFFFFF;
+}}
+
+QCheckBox::indicator:hover {{
+    border-color: {COLOR_PRIMARY};
+    background-color: #F8FAFC;
+}}
+
+QCheckBox::indicator:checked {{
+    border-color: {COLOR_PRIMARY};
+    background-color: {COLOR_PRIMARY};
+    image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'></polyline></svg>");
+}}
+
+QCheckBox::indicator:checked:hover {{
+    border-color: {COLOR_PRIMARY_HOVER};
+    background-color: {COLOR_PRIMARY_HOVER};
+}}
+
+QCheckBox::indicator:disabled {{
+    border-color: #CBD5E1;
+    background-color: #F1F5F9;
+}}
+
+/* Sidebar status card */
+QFrame#sidebarStatusCard {{
+    background-color: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(51, 65, 85, 0.8);
+    border-radius: 8px;
+    padding: 8px 10px;
+}}
 QWidget {{
     background-color: {COLOR_BG};
     color: {COLOR_TEXT};
@@ -73,6 +116,10 @@ QFrame#sidebarFrame {{
     background-color: {COLOR_SIDEBAR_BG};
     {sidebar_border}
     padding: 0px;
+}}
+
+QWidget#sidebarHeaderContainer {{
+    background-color: transparent;
 }}
 
 QLabel#sidebarLogoTitle {{
@@ -142,7 +189,7 @@ QFrame#dropZone:hover, QFrame#dropZone[dragOver="true"] {{
 QPushButton {{
     background-color: #FFFFFF;
     color: {COLOR_TEXT};
-    border: 1px solid {COLOR_BORDER};
+    border: 1px solid #CBD5E1;
     border-radius: 6px;
     padding: 6px 12px;
     font-weight: 500;
@@ -156,26 +203,42 @@ QPushButton:hover {{
 QPushButton#primaryButton {{
     background-color: {COLOR_PRIMARY};
     color: #FFFFFF;
-    border: none;
+    border: 1px solid {COLOR_PRIMARY};
     font-weight: bold;
 }}
 
 QPushButton#primaryButton:hover {{
     background-color: {COLOR_PRIMARY_HOVER};
+    border-color: {COLOR_PRIMARY_HOVER};
 }}
 
 QPushButton#primaryButton:pressed {{
     background-color: {COLOR_PRIMARY_ACTIVE};
+    border-color: {COLOR_PRIMARY_ACTIVE};
+}}
+
+QPushButton#primaryButton:disabled {{
+    background-color: #94A3B8;
+    border-color: #94A3B8;
+    color: #F1F5F9;
 }}
 
 QPushButton#dangerButton {{
     background-color: #EF4444;
     color: #FFFFFF;
-    border: none;
+    border: 1px solid #DC2626;
+    font-weight: 500;
 }}
 
 QPushButton#dangerButton:hover {{
     background-color: #DC2626;
+    border-color: #B91C1C;
+}}
+
+QPushButton#dangerButton:disabled {{
+    background-color: #FCA5A5;
+    border-color: #FCA5A5;
+    color: #FFFFFF;
 }}
 
 /* Inputs & Combo */

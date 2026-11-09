@@ -128,6 +128,50 @@ def _draw_folder(p: QPainter, s: int):
     p.drawPath(path)
 
 
+def _draw_trash(p: QPainter, s: int):
+    # Trash can body
+    rect = QRectF(s * 0.28, s * 0.36, s * 0.44, s * 0.46)
+    p.drawRoundedRect(rect, 2, 2)
+    # Lid & handle
+    p.drawLine(QPointF(s * 0.20, s * 0.36), QPointF(s * 0.80, s * 0.36))
+    p.drawLine(QPointF(s * 0.40, s * 0.24), QPointF(s * 0.60, s * 0.24))
+    p.drawLine(QPointF(s * 0.40, s * 0.24), QPointF(s * 0.40, s * 0.36))
+    p.drawLine(QPointF(s * 0.60, s * 0.24), QPointF(s * 0.60, s * 0.36))
+    # Vertical ribs
+    p.drawLine(QPointF(s * 0.42, s * 0.46), QPointF(s * 0.42, s * 0.72))
+    p.drawLine(QPointF(s * 0.58, s * 0.46), QPointF(s * 0.58, s * 0.72))
+
+
+def _draw_globe(p: QPainter, s: int):
+    p.drawEllipse(QRectF(s * 0.18, s * 0.18, s * 0.64, s * 0.64))
+    p.drawLine(QPointF(s * 0.18, s * 0.50), QPointF(s * 0.82, s * 0.50))
+    p.drawEllipse(QRectF(s * 0.34, s * 0.18, s * 0.32, s * 0.64))
+
+
+def _draw_mail(p: QPainter, s: int):
+    rect = QRectF(s * 0.18, s * 0.25, s * 0.64, s * 0.50)
+    p.drawRoundedRect(rect, 2, 2)
+    path = QPainterPath()
+    path.moveTo(s * 0.18, s * 0.25)
+    path.lineTo(s * 0.50, s * 0.52)
+    path.lineTo(s * 0.82, s * 0.25)
+    p.drawPath(path)
+
+
+def _draw_linkedin(p: QPainter, s: int):
+    rect = QRectF(s * 0.18, s * 0.18, s * 0.64, s * 0.64)
+    p.drawRoundedRect(rect, 3, 3)
+    p.drawLine(QPointF(s * 0.36, s * 0.42), QPointF(s * 0.36, s * 0.68))
+    p.drawPoint(QPointF(s * 0.36, s * 0.32))
+    path = QPainterPath()
+    path.moveTo(s * 0.50, s * 0.68)
+    path.lineTo(s * 0.50, s * 0.46)
+    path.quadTo(s * 0.50, s * 0.40, s * 0.58, s * 0.40)
+    path.quadTo(s * 0.66, s * 0.40, s * 0.66, s * 0.48)
+    path.lineTo(s * 0.66, s * 0.68)
+    p.drawPath(path)
+
+
 class AppIcons:
     """Unified icon registry for the application."""
 
@@ -178,3 +222,19 @@ class AppIcons:
     @staticmethod
     def github(color: str = "#1E293B") -> QIcon:
         return create_colored_icon(_draw_github, color)
+
+    @staticmethod
+    def trash(color: str = "#EF4444") -> QIcon:
+        return create_colored_icon(_draw_trash, color)
+
+    @staticmethod
+    def linkedin(color: str = "#0A66C2") -> QIcon:
+        return create_colored_icon(_draw_linkedin, color)
+
+    @staticmethod
+    def mail(color: str = "#EA4335") -> QIcon:
+        return create_colored_icon(_draw_mail, color)
+
+    @staticmethod
+    def globe(color: str = "#0F172A") -> QIcon:
+        return create_colored_icon(_draw_globe, color)
