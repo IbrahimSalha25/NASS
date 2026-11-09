@@ -1,13 +1,14 @@
 """
 PDF document extractor for NASS.
-Implements intelligent hybrid processing: native embedded text extraction first, with OCR fallback for scanned pages.
+Implements intelligent hybrid processing: native embedded text extraction, page-level OCR for scanned documents,
+and extraction of embedded images within PDF pages with OCR.
 """
 
 from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Callable, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 import fitz  # PyMuPDF
 from PIL import Image
@@ -24,6 +25,7 @@ from nass.core.models import (
 from nass.engines.base import BaseExtractor
 from nass.engines.ocr.ocr_engine import OcrEngine
 from nass.processors.image_processor import ImageProcessor
+from nass.services.image_ocr_service import DocumentImageOcrService, ExtractedImageItem
 from nass.utils.logger import logger
 
 
@@ -90,10 +92,15 @@ class PdfProcessor:
 
 
 class PdfExtractor(BaseExtractor):
-    """Unified extractor for PDF documents supporting native and OCR hybrid extraction."""
+    """Unified extractor for PDF documents supporting native, page OCR, and embedded image OCR."""
 
-    def __init__(self, ocr_engine: Optional[OcrEngine] = None):
+    def __init__(
+        self,
+        ocr_engine: Optional[OcrEngine] = None,
+        image_ocr_service: Optional[DocumentImageOcrService] = None,
+    ):
         self.ocr_engine = ocr_engine or OcrEngine()
+        self.image_ocr_service = image_ocr_service or DocumentImageOcrService(ocr_engine=self.ocr_engine)
 
     def can_handle(self, file_path: Path) -> bool:
         return file_path.suffix.lower() in PDF_EXTENSIONS
@@ -157,18 +164,68 @@ class PdfExtractor(BaseExtractor):
                 try:
                     fitz_page = doc[page_idx]
 
+                    # 1. Native text extraction
                     embedded_text = ""
-                    if options.extract_embedded_first:
+                    if options.extract_native_text and options.extract_embedded_first:
                         embedded_text = PdfProcessor.extract_embedded_text_page(fitz_page)
 
-                    if embedded_text and len(embedded_text.strip()) > 30:
-                        page_result.text = embedded_text.strip()
+                    native_found = bool(embedded_text and len(embedded_text.strip()) > 30)
+
+                    # 2. Embedded images within page or whole-page OCR
+                    image_ocr_blocks = []
+                    page_image_items: List[ExtractedImageItem] = []
+
+                    if native_found:
+                        page_result.native_text = embedded_text.strip()
                         page_result.is_embedded_text = True
                         page_result.confidence = 100.0
                         page_result.status = ProcessingStatus.COMPLETED
                         page_result.extraction_method = ExtractionMethod.NATIVE
-                        page_result.duration_seconds = time.time() - page_start_time
                         used_native = True
+
+                        # If user also wants OCR on images embedded inside native PDF
+                        if options.extract_images_ocr:
+                            raw_images = fitz_page.get_images(full=True)
+                            for img_idx, item in enumerate(raw_images, start=1):
+                                try:
+                                    xref = item[0]
+                                    base_img = doc.extract_image(xref)
+                                    if base_img and "image" in base_img:
+                                        img_item = ExtractedImageItem(
+                                            item_id=f"pdf_p{page_num}_img_{img_idx}",
+                                            source_location=f"صفحة PDF {page_num} - صورة #{img_idx}",
+                                            image_bytes=base_img["image"],
+                                            format=base_img.get("ext", "png").upper(),
+                                            page_or_section=page_num,
+                                            order_in_section=img_idx,
+                                        )
+                                        page_image_items.append(img_item)
+                                except Exception as im_err:
+                                    logger.warning(f"Failed to extract image {img_idx} from PDF page {page_num}: {im_err}")
+
+                            if page_image_items:
+                                self.image_ocr_service.process_image_items_batch(
+                                    page_image_items,
+                                    options=options,
+                                    cancel_check=cancel_check,
+                                )
+                                for p_im in page_image_items:
+                                    if p_im.ocr_text:
+                                        image_ocr_blocks.append(
+                                            f"[{p_im.source_location} - استخراج OCR]:\n{p_im.ocr_text}"
+                                        )
+                                if image_ocr_blocks:
+                                    used_ocr = True
+                                    page_result.extraction_method = ExtractionMethod.HYBRID
+
+                        image_ocr_text = "\n\n".join(image_ocr_blocks).strip()
+                        page_result.image_ocr_text = image_ocr_text
+
+                        # Combine
+                        if image_ocr_text:
+                            page_result.text = f"{page_result.native_text}\n\n[النصوص المستخرجة من صور الصفحة (OCR)]:\n{image_ocr_text}"
+                        else:
+                            page_result.text = page_result.native_text
 
                         if options.extract_math:
                             try:
@@ -178,13 +235,15 @@ class PdfExtractor(BaseExtractor):
                                 page_result.equations = [eq.latex for eq in eqs]
                             except Exception as m_err:
                                 logger.warning(f"Math extraction failed for page {page_num}: {m_err}")
+
                     else:
+                        # Scanned page: Perform full-page OCR
                         page_img = PdfProcessor.render_page_to_image(fitz_page, dpi=options.dpi)
                         enhanced_img = ImageProcessor.process(page_img, options)
 
                         effective_psm = 4 if options.single_column else options.psm
 
-                        page_result = self.ocr_engine.extract_text(
+                        ocr_res = self.ocr_engine.extract_text(
                             image=enhanced_img,
                             language=options.language,
                             psm=effective_psm,
@@ -192,6 +251,10 @@ class PdfExtractor(BaseExtractor):
                             extra_config=options.tesseract_config,
                             page_number=page_num,
                         )
+                        page_result.text = ocr_res.text.strip()
+                        page_result.image_ocr_text = ocr_res.text.strip()
+                        page_result.confidence = ocr_res.confidence
+                        page_result.status = ocr_res.status
                         page_result.extraction_method = ExtractionMethod.OCR
                         page_result.is_embedded_text = False
                         used_ocr = True
@@ -204,6 +267,20 @@ class PdfExtractor(BaseExtractor):
                                 page_result.equations = [eq.latex for eq in eqs]
                             except Exception as m_err:
                                 logger.warning(f"Math extraction failed for page {page_num}: {m_err}")
+
+                    page_result.image_count = len(page_image_items)
+                    page_result.image_details = [
+                        {
+                            "item_id": item.item_id,
+                            "location": item.source_location,
+                            "status": item.status.value,
+                            "confidence": item.confidence,
+                            "error": item.error_message,
+                            "has_text": bool(item.ocr_text),
+                        }
+                        for item in page_image_items
+                    ]
+                    page_result.duration_seconds = time.time() - page_start_time
 
                 except Exception as p_err:
                     logger.error(f"Error processing page {page_num} in {file_path.name}: {p_err}")

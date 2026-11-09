@@ -16,6 +16,10 @@ from nass.ui.main_window import MainWindow
 
 def test_main_window_creation():
     """Verify MainWindow creation, RTL layout, sidebar, view stack, and navigation."""
+    from nass.core.settings import SettingsManager
+    # Ensure default Arabic language for consistent UI sanity testing
+    SettingsManager.get_instance().set("app_language", "ar")
+
     app = QApplication.instance()
     if app is None:
         app = QApplication(sys.argv)

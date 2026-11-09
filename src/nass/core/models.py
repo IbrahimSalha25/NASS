@@ -86,6 +86,10 @@ class PageResult:
     error_message: Optional[str] = None
     duration_seconds: float = 0.0
     is_embedded_text: bool = True
+    native_text: str = ""              # Direct text written inside document
+    image_ocr_text: str = ""           # Text extracted from embedded images via OCR
+    image_count: int = 0               # Number of images in this section/page
+    image_details: List[dict] = field(default_factory=list)  # Details per image
 
 
 @dataclass
@@ -158,3 +162,5 @@ class OcrOptions:
     extract_embedded_first: bool = True
     extract_math: bool = False
     math_engine: str = "builtin"
+    extract_images_ocr: bool = True       # Enable OCR on images embedded in documents
+    extract_native_text: bool = True      # Enable extracting digital native text

@@ -1,7 +1,8 @@
 """
 Extraction view for NASS.
-Handles single-file processing with intelligent method detection, preview, progress, and results.
-Fully bilingual (Arabic/English) with responsive layouts for small screens.
+Handles single-file processing with intelligent method detection, multi-format visual preview (DOCX, PPTX, XLSX, PDF, Images),
+zoom controls, discrete native vs. OCR image extraction options, and categorized provenance result tabs.
+Fully bilingual (Arabic/English) with responsive layouts.
 """
 
 from __future__ import annotations
@@ -17,12 +18,15 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QMessageBox,
     QProgressBar,
     QPushButton,
     QScrollArea,
     QSplitter,
+    QTableWidget,
+    QTableWidgetItem,
     QTabWidget,
     QTextEdit,
     QVBoxLayout,
@@ -39,8 +43,8 @@ from nass.core.models import (
     ProcessingStatus,
 )
 from nass.engines.document.document_engine import DocumentEngine
-from nass.processors.pdf_processor import PdfProcessor
 from nass.services.export_service import ExportService
+from nass.services.preview_service import DocumentPreviewService
 from nass.ui.icons import AppIcons
 from nass.utils.file_utils import FileUtils
 from nass.utils.logger import logger
@@ -61,12 +65,51 @@ class ExtractView(QWidget):
         self.document_engine = DocumentEngine()
         self.page_images_cache: Dict[int, QPixmap] = {}
 
+        # Zoom state
+        self.preview_zoom_factor: float = 1.0
+        self.base_preview_width: int = 400
+
         self._init_ui()
 
     def _init_ui(self):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(14, 10, 14, 10)
         main_layout.setSpacing(10)
+
+        # 0. Drag & Drop Notice Banner at the top of the Extract View
+        self.drop_banner = QFrame()
+        self.drop_banner.setObjectName("extractDropBanner")
+        self.drop_banner.setStyleSheet(
+            "QFrame#extractDropBanner {"
+            "  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #EFF6FF, stop:1 #F5F3FF);"
+            "  border: 1.5px dashed #818CF8;"
+            "  border-radius: 8px;"
+            "  padding: 6px 14px;"
+            "}"
+            "QFrame#extractDropBanner:hover {"
+            "  background: #EEF2FF;"
+            "  border-color: #4F46E5;"
+            "}"
+        )
+        banner_layout = QHBoxLayout(self.drop_banner)
+        banner_layout.setContentsMargins(10, 6, 10, 6)
+        banner_layout.setSpacing(12)
+
+        self.lbl_banner_icon = QLabel()
+        self.lbl_banner_icon.setPixmap(AppIcons.upload("#4F46E5").pixmap(26, 26))
+        banner_layout.addWidget(self.lbl_banner_icon)
+
+        banner_text_box = QVBoxLayout()
+        banner_text_box.setSpacing(2)
+        self.lbl_banner_title = QLabel(tr("extract_drop_banner_title"))
+        self.lbl_banner_title.setStyleSheet("font-size: 13px; font-weight: bold; color: #1E1B4B;")
+        self.lbl_banner_sub = QLabel(tr("extract_drop_banner_sub"))
+        self.lbl_banner_sub.setStyleSheet("font-size: 11px; color: #4338CA;")
+        banner_text_box.addWidget(self.lbl_banner_title)
+        banner_text_box.addWidget(self.lbl_banner_sub)
+        banner_layout.addLayout(banner_text_box, stretch=1)
+
+        main_layout.addWidget(self.drop_banner)
 
         # 1. Selected File Header Card
         file_header = QFrame()
@@ -111,10 +154,10 @@ class ExtractView(QWidget):
         # 2. Main Workspace Splitter
         self.splitter = QSplitter(Qt.Horizontal)
 
-        # Right Panel: Options & Preview wrapped in ScrollArea for small screen heights
+        # Right Panel: Options & Preview
         right_panel = QFrame()
         right_panel.setObjectName("cardFrame")
-        right_panel.setMinimumWidth(320)
+        right_panel.setMinimumWidth(340)
         right_layout = QVBoxLayout(right_panel)
         right_layout.setContentsMargins(10, 10, 10, 10)
         right_layout.setSpacing(8)
@@ -122,6 +165,25 @@ class ExtractView(QWidget):
         self.lbl_opts_title = QLabel(tr("extract_options_title"))
         self.lbl_opts_title.setStyleSheet("font-weight: bold; color: #1E3A8A; font-size: 12px;")
         right_layout.addWidget(self.lbl_opts_title)
+
+        # Separate extraction modes (Native vs Images OCR)
+        self.modes_container = QFrame()
+        self.modes_container.setStyleSheet("background-color: #F8FAFC; border-radius: 6px; padding: 4px;")
+        modes_layout = QVBoxLayout(self.modes_container)
+        modes_layout.setContentsMargins(6, 6, 6, 6)
+        modes_layout.setSpacing(6)
+
+        self.chk_extract_native = QCheckBox(tr("extract_chk_native_text"))
+        self.chk_extract_native.setChecked(True)
+        self.chk_extract_native.setStyleSheet("font-weight: bold; color: #1E293B;")
+
+        self.chk_extract_images = QCheckBox(tr("extract_chk_images_ocr"))
+        self.chk_extract_images.setChecked(True)
+        self.chk_extract_images.setStyleSheet("font-weight: bold; color: #1E293B;")
+
+        modes_layout.addWidget(self.chk_extract_native)
+        modes_layout.addWidget(self.chk_extract_images)
+        right_layout.addWidget(self.modes_container)
 
         # OCR Language row
         self.lang_container = QWidget()
@@ -187,19 +249,51 @@ class ExtractView(QWidget):
         right_layout.addWidget(self.progress_bar)
         right_layout.addWidget(self.lbl_progress_status)
 
-        # Preview Section with direct page navigation controls [ - ]  3 / 12  [ + ]
+        # Preview Section with Navigation & Zoom controls
         preview_header = QHBoxLayout()
         self.lbl_preview_title = QLabel(tr("extract_lbl_preview"))
         self.lbl_preview_title.setStyleSheet("font-weight: bold; font-size: 12px; color: #1E293B;")
         preview_header.addWidget(self.lbl_preview_title)
         preview_header.addStretch()
 
+        # Zoom controls with attractive vector icons
+        self.btn_zoom_out = QPushButton()
+        self.btn_zoom_out.setIcon(AppIcons.zoom_out("#1E293B"))
+        self.btn_zoom_out.setIconSize(QSize(16, 16))
+        self.btn_zoom_out.setToolTip(tr("extract_zoom_out"))
+        self.btn_zoom_out.setFixedSize(28, 26)
+        self.btn_zoom_out.setCursor(Qt.PointingHandCursor)
+        self.btn_zoom_out.clicked.connect(self._zoom_out_preview)
+
+        self.btn_zoom_reset = QPushButton()
+        self.btn_zoom_reset.setIcon(AppIcons.zoom_reset("#1E293B"))
+        self.btn_zoom_reset.setIconSize(QSize(16, 16))
+        self.btn_zoom_reset.setToolTip(tr("extract_zoom_reset"))
+        self.btn_zoom_reset.setFixedSize(28, 26)
+        self.btn_zoom_reset.setCursor(Qt.PointingHandCursor)
+        self.btn_zoom_reset.clicked.connect(self._zoom_reset_preview)
+
+        self.btn_zoom_in = QPushButton()
+        self.btn_zoom_in.setIcon(AppIcons.zoom_in("#1E293B"))
+        self.btn_zoom_in.setIconSize(QSize(16, 16))
+        self.btn_zoom_in.setToolTip(tr("extract_zoom_in"))
+        self.btn_zoom_in.setFixedSize(28, 26)
+        self.btn_zoom_in.setCursor(Qt.PointingHandCursor)
+        self.btn_zoom_in.clicked.connect(self._zoom_in_preview)
+
+        preview_header.addWidget(self.btn_zoom_out)
+        preview_header.addWidget(self.btn_zoom_reset)
+        preview_header.addWidget(self.btn_zoom_in)
+
+        # Page nav container
         self.nav_container = QWidget()
         nav_layout = QHBoxLayout(self.nav_container)
-        nav_layout.setContentsMargins(0, 0, 0, 0)
-        nav_layout.setSpacing(6)
+        nav_layout.setContentsMargins(4, 0, 0, 0)
+        nav_layout.setSpacing(4)
 
-        self.btn_prev_page = QPushButton("−")
+        self.btn_prev_page = QPushButton()
+        self.btn_prev_page.setIcon(AppIcons.arrow_left("#1E293B"))
+        self.btn_prev_page.setIconSize(QSize(14, 14))
         self.btn_prev_page.setToolTip(tr("extract_page_prev"))
         self.btn_prev_page.setFixedSize(26, 26)
         self.btn_prev_page.setCursor(Qt.PointingHandCursor)
@@ -210,7 +304,9 @@ class ExtractView(QWidget):
         self.lbl_page_counter.setStyleSheet("font-size: 11px; font-weight: bold; color: #1E293B; min-width: 50px;")
         self.lbl_page_counter.setAlignment(Qt.AlignCenter)
 
-        self.btn_next_page = QPushButton("+")
+        self.btn_next_page = QPushButton()
+        self.btn_next_page.setIcon(AppIcons.arrow_right("#1E293B"))
+        self.btn_next_page.setIconSize(QSize(14, 14))
         self.btn_next_page.setToolTip(tr("extract_page_next"))
         self.btn_next_page.setFixedSize(26, 26)
         self.btn_next_page.setCursor(Qt.PointingHandCursor)
@@ -262,21 +358,53 @@ class ExtractView(QWidget):
 
         left_layout.addWidget(self.stats_bar)
 
-        # Results Tabs
+        # Results Tabs: All, Native, Image OCR, Images Table, Math
         self.results_tabs = QTabWidget()
 
-        # Tab 1: Extracted text
-        tab_text_widget = QWidget()
-        tt_layout = QVBoxLayout(tab_text_widget)
-        tt_layout.setContentsMargins(4, 6, 4, 4)
+        # Tab 1: All Extracted Text
+        tab_all_widget = QWidget()
+        ta_layout = QVBoxLayout(tab_all_widget)
+        ta_layout.setContentsMargins(4, 6, 4, 4)
         self.txt_output = QTextEdit()
         self.txt_output.setPlaceholderText(tr("extract_txt_placeholder"))
         self.txt_output.setLayoutDirection(Qt.RightToLeft if I18n.is_rtl() else Qt.LeftToRight)
         self.txt_output.textChanged.connect(self._update_text_counts)
-        tt_layout.addWidget(self.txt_output)
-        self.results_tabs.addTab(tab_text_widget, tr("extract_tab_text"))
+        ta_layout.addWidget(self.txt_output)
+        self.results_tabs.addTab(tab_all_widget, tr("extract_tab_all_text"))
 
-        # Tab 2: Mathematical formulas (LaTeX)
+        # Tab 2: Native Digital Text
+        tab_native_widget = QWidget()
+        tn_layout = QVBoxLayout(tab_native_widget)
+        tn_layout.setContentsMargins(4, 6, 4, 4)
+        self.txt_native_output = QTextEdit()
+        self.txt_native_output.setPlaceholderText("النصوص الأصلية المكتوبة داخل المستند...")
+        self.txt_native_output.setLayoutDirection(Qt.RightToLeft if I18n.is_rtl() else Qt.LeftToRight)
+        tn_layout.addWidget(self.txt_native_output)
+        self.results_tabs.addTab(tab_native_widget, tr("extract_tab_native_text"))
+
+        # Tab 3: Embedded Images OCR Text
+        tab_img_ocr_widget = QWidget()
+        ti_layout = QVBoxLayout(tab_img_ocr_widget)
+        ti_layout.setContentsMargins(4, 6, 4, 4)
+        self.txt_image_ocr_output = QTextEdit()
+        self.txt_image_ocr_output.setPlaceholderText("النصوص المستخرجة عبر OCR من الصور المضمنة...")
+        self.txt_image_ocr_output.setLayoutDirection(Qt.RightToLeft if I18n.is_rtl() else Qt.LeftToRight)
+        ti_layout.addWidget(self.txt_image_ocr_output)
+        self.results_tabs.addTab(tab_img_ocr_widget, tr("extract_tab_images_ocr"))
+
+        # Tab 4: Image Provenance Table
+        tab_tbl_widget = QWidget()
+        tbl_layout = QVBoxLayout(tab_tbl_widget)
+        tbl_layout.setContentsMargins(4, 6, 4, 4)
+        self.tbl_images = QTableWidget()
+        self.tbl_images.setColumnCount(4)
+        self.tbl_images.setHorizontalHeaderLabels(["المعرف", "الموقع بالمستند", "الحالة", "الدقة"])
+        self.tbl_images.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.tbl_images.setAlternatingRowColors(True)
+        tbl_layout.addWidget(self.tbl_images)
+        self.results_tabs.addTab(tab_tbl_widget, tr("extract_tab_images_list", count=0))
+
+        # Tab 5: Mathematical formulas (LaTeX)
         tab_math_widget = QWidget()
         tm_layout = QVBoxLayout(tab_math_widget)
         tm_layout.setContentsMargins(4, 6, 4, 4)
@@ -352,15 +480,33 @@ class ExtractView(QWidget):
         if idx >= 0:
             self.combo_dpi.setCurrentIndex(idx)
 
+    def _zoom_in_preview(self):
+        if self.preview_zoom_factor < 2.5:
+            self.preview_zoom_factor += 0.25
+            self._render_current_page_preview(self.current_preview_page)
+
+    def _zoom_out_preview(self):
+        if self.preview_zoom_factor > 0.5:
+            self.preview_zoom_factor -= 0.25
+            self._render_current_page_preview(self.current_preview_page)
+
+    def _zoom_reset_preview(self):
+        self.preview_zoom_factor = 1.0
+        self._render_current_page_preview(self.current_preview_page)
+
     def load_file(self, file_path: Path):
         """Load selected document, identify its type, update preview, and prepare options."""
         self.current_file = file_path.resolve()
         self.current_doc_result = None
         self.page_images_cache.clear()
         self.txt_output.clear()
+        self.txt_native_output.clear()
+        self.txt_image_ocr_output.clear()
         self.txt_math_output.clear()
+        self.tbl_images.setRowCount(0)
         self.current_preview_page = 1
         self.total_preview_pages = 1
+        self.preview_zoom_factor = 1.0
 
         file_size_formatted = FileUtils.format_size(self.current_file.stat().st_size)
         file_type = FileUtils.detect_file_type(self.current_file)
@@ -380,33 +526,19 @@ class ExtractView(QWidget):
         )
         self.lbl_method_badge.setText(tr("extract_method_label", method=method_name))
 
-        # Adapt UI controls based on file type
-        is_ocr_needed = (file_type in (FileType.IMAGE, FileType.PDF))
-        self.lang_container.setVisible(is_ocr_needed)
-        self.dpi_container.setVisible(is_ocr_needed)
-        self.chk_enhance.setVisible(is_ocr_needed)
-        self.chk_single_col.setVisible(is_ocr_needed)
-
-        # Page count and preview setup
-        if file_type == FileType.PDF:
-            try:
-                page_count, is_enc, has_txt = PdfProcessor.get_document_info(self.current_file)
-                if is_enc:
-                    self.lbl_file_meta.setText(tr("extract_meta_encrypted_pdf"))
-                    self.btn_start.setEnabled(False)
-                    self._update_page_nav(1, 0)
-                    return
-                self._update_page_nav(1, page_count)
-                self.lbl_stat_pages.setText(tr("extract_stat_pages_fmt", pages=page_count))
-            except Exception as e:
-                logger.warning(f"Could not read PDF metadata: {e}")
-                self._update_page_nav(1, 1)
-        elif file_type == FileType.IMAGE:
-            self._update_page_nav(1, 1)
-            self.lbl_stat_pages.setText(tr("extract_stat_pages_fmt", pages=1))
+        # Show native vs image extraction choices for office & PDF
+        is_office_or_pdf = (file_type in (FileType.WORD, FileType.POWERPOINT, FileType.EXCEL, FileType.PDF))
+        self.modes_container.setVisible(is_office_or_pdf)
+        if file_type == FileType.IMAGE:
+            self.chk_extract_native.setVisible(False)
+            self.chk_extract_images.setChecked(True)
         else:
-            self._update_page_nav(1, 1)
-            self.lbl_stat_pages.setText(tr("extract_stat_pages_fmt", pages=1))
+            self.chk_extract_native.setVisible(True)
+
+        # Inspect page count via DocumentPreviewService
+        page_count = DocumentPreviewService.get_document_page_count(self.current_file)
+        self._update_page_nav(1, page_count)
+        self.lbl_stat_pages.setText(tr("extract_stat_pages_fmt", pages=page_count))
 
         self._render_current_page_preview(1)
         self.btn_start.setEnabled(True)
@@ -414,7 +546,7 @@ class ExtractView(QWidget):
         self.progress_bar.setValue(0)
 
     def _update_page_nav(self, current: int, total: int):
-        """Update direct page navigation state and counter [ - ]  current / total  [ + ]."""
+        """Update direct page navigation state and counter [ ◀ ]  current / total  [ ▶ ]."""
         self.current_preview_page = current
         self.total_preview_pages = total
         if total > 0:
@@ -451,46 +583,30 @@ class ExtractView(QWidget):
                 self.lbl_stat_conf.setText(tr("extract_stat_confidence_val", conf=page_res.confidence))
 
     def _render_current_page_preview(self, page_num: int):
-        """Render page image preview for visual formats (PDF, images)."""
+        """Render high quality visual preview using DocumentPreviewService with zoom scaling."""
         if not self.current_file or not self.current_file.exists():
             return
 
-        if page_num in self.page_images_cache:
-            self.lbl_image_preview.setPixmap(self.page_images_cache[page_num])
+        cache_key = page_num
+        target_w = int(self.base_preview_width * self.preview_zoom_factor)
+
+        # Re-render if zoom changed or not cached
+        if cache_key in self.page_images_cache and self.preview_zoom_factor == 1.0:
+            self.lbl_image_preview.setPixmap(self.page_images_cache[cache_key])
             return
 
-        file_type = FileUtils.detect_file_type(self.current_file)
         try:
-            if file_type == FileType.IMAGE:
-                pix = QPixmap(str(self.current_file))
-                scaled = pix.scaledToWidth(380, Qt.SmoothTransformation)
-                self.page_images_cache[page_num] = scaled
-                self.lbl_image_preview.setPixmap(scaled)
-            elif file_type == FileType.PDF:
-                import fitz
-                doc = fitz.open(str(self.current_file))
-                if 0 <= page_num - 1 < len(doc):
-                    page = doc[page_num - 1]
-                    pil_img = PdfProcessor.render_page_to_image(page, dpi=120)
-                    doc.close()
-
-                    data = pil_img.tobytes("raw", "RGB")
-                    qimg = QImage(data, pil_img.width, pil_img.height, QImage.Format_RGB888)
-                    pix = QPixmap.fromImage(qimg).scaledToWidth(380, Qt.SmoothTransformation)
-                    self.page_images_cache[page_num] = pix
-                    self.lbl_image_preview.setPixmap(pix)
-            else:
-                self.lbl_image_preview.setText(
-                    tr("extract_direct_doc_preview", type=file_type.value.upper())
-                )
+            pix = DocumentPreviewService.render_page_preview(
+                file_path=self.current_file,
+                page_num=page_num,
+                target_width=target_w,
+            )
+            if self.preview_zoom_factor == 1.0:
+                self.page_images_cache[cache_key] = pix
+            self.lbl_image_preview.setPixmap(pix)
         except Exception as e:
             logger.warning(f"Failed to generate preview for page {page_num}: {e}")
             self.lbl_image_preview.setText(tr("extract_preview_unavailable"))
-
-    def _on_preview_page_changed(self, index: int):
-        page_num = index + 1
-        self._render_current_page_preview(page_num)
-        self._sync_page_selection_stats(page_num)
 
     def _start_processing(self):
         """Start document text extraction in background thread."""
@@ -505,6 +621,8 @@ class ExtractView(QWidget):
             denoise=self.chk_enhance.isChecked(),
             single_column=self.chk_single_col.isChecked(),
             extract_math=self.chk_math.isChecked(),
+            extract_native_text=self.chk_extract_native.isChecked(),
+            extract_images_ocr=self.chk_extract_images.isChecked(),
         )
 
         self.btn_start.setEnabled(False)
@@ -514,11 +632,16 @@ class ExtractView(QWidget):
         self.chk_enhance.setEnabled(False)
         self.chk_math.setEnabled(False)
         self.chk_single_col.setEnabled(False)
+        self.chk_extract_native.setEnabled(False)
+        self.chk_extract_images.setEnabled(False)
 
         self.progress_bar.setValue(0)
         self.lbl_progress_status.setText(tr("extract_status_reading"))
         self.txt_output.clear()
+        self.txt_native_output.clear()
+        self.txt_image_ocr_output.clear()
         self.txt_math_output.clear()
+        self.tbl_images.setRowCount(0)
 
         self.active_worker = OcrWorker(files=[self.current_file], options=opts)
         self.active_worker.page_progress.connect(self._on_page_progress)
@@ -535,6 +658,7 @@ class ExtractView(QWidget):
             self.btn_cancel.setEnabled(False)
 
     def _on_page_progress(self, file_idx: int, page_num: int, total_pages: int, page_res: PageResult):
+        # 1. Update All Text
         current_text = self.txt_output.toPlainText()
         prefix = "\n\n" if current_text else ""
         header_title = page_res.title or (
@@ -543,6 +667,28 @@ class ExtractView(QWidget):
         header = f"--- [{header_title}] ---\n" if header_title else ""
         self.txt_output.setText(f"{current_text}{prefix}{header}{page_res.text}")
 
+        # 2. Update Native Text Tab
+        if page_res.native_text:
+            curr_native = self.txt_native_output.toPlainText()
+            n_prefix = "\n\n" if curr_native else ""
+            self.txt_native_output.setText(f"{curr_native}{n_prefix}{header}{page_res.native_text}")
+
+        # 3. Update Image OCR Text Tab
+        if page_res.image_ocr_text:
+            curr_img_ocr = self.txt_image_ocr_output.toPlainText()
+            i_prefix = "\n\n" if curr_img_ocr else ""
+            self.txt_image_ocr_output.setText(f"{curr_img_ocr}{i_prefix}{header}{page_res.image_ocr_text}")
+
+        # 4. Update Images Table
+        for img_info in page_res.image_details:
+            r = self.tbl_images.rowCount()
+            self.tbl_images.insertRow(r)
+            self.tbl_images.setItem(r, 0, QTableWidgetItem(img_info.get("item_id", "")))
+            self.tbl_images.setItem(r, 1, QTableWidgetItem(img_info.get("location", "")))
+            self.tbl_images.setItem(r, 2, QTableWidgetItem(img_info.get("status", "")))
+            self.tbl_images.setItem(r, 3, QTableWidgetItem(f"{img_info.get('confidence', 0.0):.1f}%"))
+
+        # 5. Math output
         if page_res.equations:
             math_text = self.txt_math_output.toPlainText()
             m_prefix = "\n\n" if math_text else ""
@@ -562,6 +708,8 @@ class ExtractView(QWidget):
         self.chk_enhance.setEnabled(True)
         self.chk_math.setEnabled(True)
         self.chk_single_col.setEnabled(True)
+        self.chk_extract_native.setEnabled(True)
+        self.chk_extract_images.setEnabled(True)
 
         if results:
             self.current_doc_result = results[0]
@@ -591,9 +739,12 @@ class ExtractView(QWidget):
             if len(self.current_doc_result.pages) > 1 and self.total_preview_pages <= 1:
                 self._update_page_nav(1, len(self.current_doc_result.pages))
 
+            total_images = sum(len(p.image_details) for p in self.current_doc_result.pages)
+            self.results_tabs.setTabText(3, tr("extract_tab_images_list", count=total_images))
+
             if self.current_doc_result.all_equations:
                 self.results_tabs.setTabText(
-                    1, tr("extract_tab_math_count", count=len(self.current_doc_result.all_equations))
+                    4, tr("extract_tab_math_count", count=len(self.current_doc_result.all_equations))
                 )
 
         self._update_text_counts()
@@ -677,35 +828,37 @@ class ExtractView(QWidget):
                 if self.current_doc_result:
                     ExportService.export_to_docx(self.current_doc_result, Path(path))
                 else:
-                    dummy_page = PageResult(page_number=1, text=text)
-                    doc_res = DocumentResult(
-                        file_path=self.current_file or Path("extracted.docx"),
-                        pages=[dummy_page],
-                    )
-                    ExportService.export_to_docx(doc_res, Path(path))
+                    import docx
+                    doc = docx.Document()
+                    doc.add_paragraph(text)
+                    doc.save(path)
                 QMessageBox.information(self, tr("copied_title"), tr("extract_export_docx_success", path=path))
             except Exception as e:
                 QMessageBox.critical(self, tr("extract_export_error_title"), tr("extract_export_error_msg", err=e))
 
-    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
+    def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
 
-    def dropEvent(self, event: QDropEvent) -> None:
+    def dropEvent(self, event: QDropEvent):
         urls = event.mimeData().urls()
-        if not urls:
-            return
-        file_path = Path(urls[0].toLocalFile()).resolve()
-        valid, _ = FileUtils.is_valid_file(file_path)
-        if valid:
-            self.load_file(file_path)
-            event.acceptProposedAction()
+        if urls:
+            path = Path(urls[0].toLocalFile()).resolve()
+            valid, err = FileUtils.is_valid_file(path)
+            if valid:
+                self.load_file(path)
+                event.acceptProposedAction()
+            else:
+                QMessageBox.warning(self, tr("extract_invalid_file_title"), err or "ملف غير مدعوم.")
 
     def retranslate_ui(self) -> None:
         """Updates text elements based on current application language."""
         direction = Qt.RightToLeft if I18n.is_rtl() else Qt.LeftToRight
         self.setLayoutDirection(direction)
 
+        if hasattr(self, "lbl_banner_title"):
+            self.lbl_banner_title.setText(tr("extract_drop_banner_title"))
+            self.lbl_banner_sub.setText(tr("extract_drop_banner_sub"))
         if hasattr(self, "btn_change"):
             self.btn_change.setText(tr("extract_btn_change"))
         self.lbl_opts_title.setText(tr("extract_options_title"))
@@ -714,6 +867,8 @@ class ExtractView(QWidget):
         self.lbl_dpi_title.setText(tr("extract_lbl_dpi"))
         self._populate_dpi_combo()
 
+        self.chk_extract_native.setText(tr("extract_chk_native_text"))
+        self.chk_extract_images.setText(tr("extract_chk_images_ocr"))
         self.chk_enhance.setText(tr("extract_chk_enhance"))
         self.chk_math.setText(tr("extract_chk_math"))
         self.chk_single_col.setText(tr("extract_chk_single_col"))
@@ -728,10 +883,18 @@ class ExtractView(QWidget):
         self.lbl_preview_title.setText(tr("extract_lbl_preview"))
         self.btn_prev_page.setToolTip(tr("extract_page_prev"))
         self.btn_next_page.setToolTip(tr("extract_page_next"))
-        self.results_tabs.setTabText(0, tr("extract_tab_text"))
-        self.results_tabs.setTabText(1, tr("extract_tab_math"))
+
+        self.results_tabs.setTabText(0, tr("extract_tab_all_text"))
+        self.results_tabs.setTabText(1, tr("extract_tab_native_text"))
+        self.results_tabs.setTabText(2, tr("extract_tab_images_ocr"))
+        total_imgs = sum(len(p.image_details) for p in self.current_doc_result.pages) if self.current_doc_result else 0
+        self.results_tabs.setTabText(3, tr("extract_tab_images_list", count=total_imgs))
+        self.results_tabs.setTabText(4, tr("extract_tab_math"))
+
         self.txt_output.setPlaceholderText(tr("extract_txt_placeholder"))
         self.txt_output.setLayoutDirection(direction)
+        self.txt_native_output.setLayoutDirection(direction)
+        self.txt_image_ocr_output.setLayoutDirection(direction)
         self.txt_math_output.setPlaceholderText(tr("extract_math_placeholder"))
 
         if not self.current_file:

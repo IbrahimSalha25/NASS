@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import io
 from typing import Dict, List, Optional
 
 from PIL import Image
@@ -344,9 +345,12 @@ class ExtractView(QWidget):
                     doc.close()
 
                     # تحويل PIL إلى QPixmap
-                    data = pil_img.tobytes("raw", "RGB")
-                    qimg = QImage(data, pil_img.width, pil_img.height, QImage.Format_RGB888)
-                    pix = QPixmap.fromImage(qimg).scaledToWidth(380, Qt.SmoothTransformation)
+                    buf = io.BytesIO()
+                    pil_img.convert("RGB").save(buf, format="PNG")
+                    pix = QPixmap()
+                    pix.loadFromData(buf.getvalue())
+                    if not pix.isNull():
+                        pix = pix.scaledToWidth(380, Qt.SmoothTransformation)
                     self.page_images_cache[page_num] = pix
                     self.lbl_image_preview.setPixmap(pix)
         except Exception as e:

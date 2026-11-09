@@ -28,6 +28,7 @@ from nass.processors.opendoc_processor import OpenDocumentExtractor
 from nass.processors.pdf_processor import PdfExtractor
 from nass.processors.powerpoint_processor import PowerPointExtractor
 from nass.processors.text_processor import TextExtractor
+from nass.services.image_ocr_service import DocumentImageOcrService
 from nass.utils.file_utils import FileUtils
 from nass.utils.logger import logger
 
@@ -39,12 +40,13 @@ class DocumentEngine:
 
     def __init__(self, ocr_engine: Optional[OcrEngine] = None):
         self.ocr_engine = ocr_engine or OcrEngine()
+        self.image_ocr_service = DocumentImageOcrService(ocr_engine=self.ocr_engine)
         self.extractors: List[BaseExtractor] = [
-            PdfExtractor(ocr_engine=self.ocr_engine),
+            PdfExtractor(ocr_engine=self.ocr_engine, image_ocr_service=self.image_ocr_service),
             ImageExtractor(ocr_engine=self.ocr_engine),
-            DocxExtractor(),
-            ExcelExtractor(),
-            PowerPointExtractor(),
+            DocxExtractor(image_ocr_service=self.image_ocr_service),
+            ExcelExtractor(image_ocr_service=self.image_ocr_service),
+            PowerPointExtractor(image_ocr_service=self.image_ocr_service),
             TextExtractor(),
             MarkupExtractor(),
             JsonExtractor(),

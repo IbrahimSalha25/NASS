@@ -103,6 +103,43 @@ def _draw_github(p: QPainter, s: int):
     p.drawLine(QPointF(s * 0.65, s * 0.25), QPointF(s * 0.70, s * 0.15))
 
 
+def _draw_zoom_in(p: QPainter, s: int):
+    # Magnifying glass circle
+    p.drawEllipse(QRectF(s * 0.20, s * 0.20, s * 0.44, s * 0.44))
+    # Handle
+    p.drawLine(QPointF(s * 0.54, s * 0.54), QPointF(s * 0.80, s * 0.80))
+    # Plus
+    p.drawLine(QPointF(s * 0.42, s * 0.32), QPointF(s * 0.42, s * 0.52))
+    p.drawLine(QPointF(s * 0.32, s * 0.42), QPointF(s * 0.52, s * 0.42))
+
+
+def _draw_zoom_out(p: QPainter, s: int):
+    # Magnifying glass circle
+    p.drawEllipse(QRectF(s * 0.20, s * 0.20, s * 0.44, s * 0.44))
+    # Handle
+    p.drawLine(QPointF(s * 0.54, s * 0.54), QPointF(s * 0.80, s * 0.80))
+    # Minus
+    p.drawLine(QPointF(s * 0.32, s * 0.42), QPointF(s * 0.52, s * 0.42))
+
+
+def _draw_zoom_reset(p: QPainter, s: int):
+    p.drawRoundedRect(QRectF(s * 0.20, s * 0.20, s * 0.60, s * 0.60), 3, 3)
+    p.drawLine(QPointF(s * 0.35, s * 0.35), QPointF(s * 0.35, s * 0.65))
+    p.drawLine(QPointF(s * 0.65, s * 0.35), QPointF(s * 0.65, s * 0.65))
+    p.drawPoint(QPointF(s * 0.50, s * 0.42))
+    p.drawPoint(QPointF(s * 0.50, s * 0.58))
+
+
+def _draw_arrow_left(p: QPainter, s: int):
+    p.drawLine(QPointF(s * 0.65, s * 0.25), QPointF(s * 0.35, s * 0.50))
+    p.drawLine(QPointF(s * 0.35, s * 0.50), QPointF(s * 0.65, s * 0.75))
+
+
+def _draw_arrow_right(p: QPainter, s: int):
+    p.drawLine(QPointF(s * 0.35, s * 0.25), QPointF(s * 0.65, s * 0.50))
+    p.drawLine(QPointF(s * 0.65, s * 0.50), QPointF(s * 0.35, s * 0.75))
+
+
 def _draw_upload(p: QPainter, s: int):
     # Base tray
     p.drawLine(QPointF(s * 0.22, s * 0.66), QPointF(s * 0.22, s * 0.80))
@@ -238,3 +275,23 @@ class AppIcons:
     @staticmethod
     def globe(color: str = "#0F172A") -> QIcon:
         return create_colored_icon(_draw_globe, color)
+
+    @staticmethod
+    def zoom_in(color: str = "#1E293B") -> QIcon:
+        return create_colored_icon(_draw_zoom_in, color)
+
+    @staticmethod
+    def zoom_out(color: str = "#1E293B") -> QIcon:
+        return create_colored_icon(_draw_zoom_out, color)
+
+    @staticmethod
+    def zoom_reset(color: str = "#1E293B") -> QIcon:
+        return create_colored_icon(_draw_zoom_reset, color)
+
+    @staticmethod
+    def arrow_left(color: str = "#1E293B") -> QIcon:
+        return create_colored_icon(_draw_arrow_left, color)
+
+    @staticmethod
+    def arrow_right(color: str = "#1E293B") -> QIcon:
+        return create_colored_icon(_draw_arrow_right, color)

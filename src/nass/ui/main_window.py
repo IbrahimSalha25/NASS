@@ -177,6 +177,8 @@ class MainWindow(QMainWindow):
             self.history_view.retranslate_ui()
         if hasattr(self, "app_settings_view"):
             self.app_settings_view.retranslate_ui()
+        if hasattr(self, "ocr_settings_view"):
+            self.ocr_settings_view.retranslate_ui()
         if hasattr(self, "about_view"):
             self.about_view.retranslate_ui()
 

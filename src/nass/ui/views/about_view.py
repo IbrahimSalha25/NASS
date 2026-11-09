@@ -71,8 +71,8 @@ class AboutView(QWidget):
         app_card = QFrame()
         app_card.setObjectName("cardFrame")
         ac_layout = QVBoxLayout(app_card)
-        ac_layout.setContentsMargins(24, 24, 24, 24)
-        ac_layout.setSpacing(12)
+        ac_layout.setContentsMargins(28, 28, 28, 28)
+        ac_layout.setSpacing(14)
         ac_layout.setAlignment(Qt.AlignCenter)
 
         # Logo
@@ -83,24 +83,36 @@ class AboutView(QWidget):
         if logo_path.exists():
             lbl_logo = QLabel()
             pix = QPixmap(str(logo_path)).scaled(
-                80, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                85, 85, Qt.KeepAspectRatio, Qt.SmoothTransformation
             )
             lbl_logo.setPixmap(pix)
             lbl_logo.setAlignment(Qt.AlignCenter)
             ac_layout.addWidget(lbl_logo)
 
         self.lbl_app_title = QLabel(f"{APP_NAME} — Smart Document & OCR Extractor")
-        self.lbl_app_title.setStyleSheet("font-size: 22px; font-weight: bold; color: #0F172A;")
+        self.lbl_app_title.setStyleSheet("font-size: 24px; font-weight: 800; color: #0F172A; letter-spacing: 0.5px;")
         self.lbl_app_title.setAlignment(Qt.AlignCenter)
         ac_layout.addWidget(self.lbl_app_title)
 
         self.lbl_slogan = QLabel(tr("app_slogan"))
-        self.lbl_slogan.setStyleSheet("font-size: 15px; color: #7C3AED; font-weight: 600;")
+        self.lbl_slogan.setStyleSheet(
+            "font-size: 16px; color: #6D28D9; font-weight: 700; "
+            "background-color: #F5F3FF; padding: 4px 16px; border-radius: 20px;"
+        )
         self.lbl_slogan.setAlignment(Qt.AlignCenter)
-        ac_layout.addWidget(self.lbl_slogan)
+        ac_layout.addWidget(self.lbl_slogan, alignment=Qt.AlignCenter)
 
-        self.lbl_version = QLabel(f"{tr('version')} {APP_VERSION} • MIT License")
-        self.lbl_version.setStyleSheet("font-size: 12px; color: #64748B; font-weight: 500;")
+        self.lbl_app_tagline = QLabel(
+            "الجيل الجديد لاستخراج النصوص الذكي من المستندات الرقمية والصور • قوة هندسية، خصوصية مطلقة، وبدون إنترنت"
+            if I18n.is_rtl() else
+            "Next-Generation Smart Text Extraction for Documents & Images • High Engineering Quality, 100% Local Privacy"
+        )
+        self.lbl_app_tagline.setStyleSheet("font-size: 13px; color: #475569; font-weight: 500;")
+        self.lbl_app_tagline.setAlignment(Qt.AlignCenter)
+        ac_layout.addWidget(self.lbl_app_tagline)
+
+        self.lbl_version = QLabel(f"{tr('version')} {APP_VERSION} • رخصة مفتوحة المصدر (MIT License)")
+        self.lbl_version.setStyleSheet("font-size: 12px; color: #64748B; font-weight: 600;")
         self.lbl_version.setAlignment(Qt.AlignCenter)
         ac_layout.addWidget(self.lbl_version)
 
@@ -166,12 +178,12 @@ class AboutView(QWidget):
         dc_layout.addLayout(links_box)
 
         self.lbl_dev_bio = QLabel(
-            "تم تصميم وبناء تطبيق نَصّ (NASS) بحرص هندسي عالٍ ليكون حلاً محلياً شاملاً، ذكياً، ومفتوح المصدر "
-            "لاستخراج النصوص من مختلف أنواع الملفات والمستندات والصور، مع مراعاة أعلى معايير الجودة، "
-            "والنظافة المعمارية للكود البرمجي، وسهولة الاستخدام للجمهور العربي."
+            "تم تصميم وبناء تطبيق نَصّ (NASS) ليكون منصة سطح مكتب هندسية رائدة، تدمج بين خوارزميات التعرف الضوئي على المحارف (OCR)، "
+            "والاستخراج المباشر للنصوص من مستندات Office وPDF، مع دعم كامل للصور المضمنة والمعادلات الرياضية (LaTeX). "
+            "صُمم التطبيق ليعمل محلياً بصورة كاملة 100% دون خوادم سحابية، مع مراعاة قصوى لخصوصية البيانات وجودة تجربة المستخدم العربية."
         )
         self.lbl_dev_bio.setWordWrap(True)
-        self.lbl_dev_bio.setStyleSheet("color: #334155; font-size: 12px; line-height: 1.6;")
+        self.lbl_dev_bio.setStyleSheet("color: #334155; font-size: 13px; line-height: 1.8;")
         dc_layout.addWidget(self.lbl_dev_bio)
 
         container_layout.addWidget(dev_card)
@@ -276,11 +288,18 @@ class AboutView(QWidget):
         self.lbl_privacy_title.setText(tr("about_privacy_title"))
         self.lbl_tech_title.setText(tr("about_tech_title"))
 
+        if hasattr(self, "lbl_app_tagline"):
+            self.lbl_app_tagline.setText(
+                "الجيل الجديد لاستخراج النصوص الذكي من المستندات الرقمية والصور • قوة هندسية، خصوصية مطلقة، وبدون إنترنت"
+                if I18n.is_rtl() else
+                "Next-Generation Smart Text Extraction for Documents & Images • High Engineering Quality, 100% Local Privacy"
+            )
+
         if I18n.is_rtl():
             self.lbl_dev_bio.setText(
-                "تم تصميم وبناء تطبيق نَصّ (NASS) بحرص هندسي عالٍ ليكون حلاً محلياً شاملاً، ذكياً، ومفتوح المصدر "
-                "لاستخراج النصوص من مختلف أنواع الملفات والمستندات والصور، مع مراعاة أعلى معايير الجودة، "
-                "والنظافة المعمارية للكود البرمجي، وسهولة الاستخدام للجمهور العربي."
+                "تم تصميم وبناء تطبيق نَصّ (NASS) ليكون منصة سطح مكتب هندسية رائدة، تدمج بين خوارزميات التعرف الضوئي على المحارف (OCR)، "
+                "والاستخراج المباشر للنصوص من مستندات Office وPDF، مع دعم كامل للصور المضمنة والمعادلات الرياضية (LaTeX). "
+                "صُمم التطبيق ليعمل محلياً بصورة كاملة 100% دون خوادم سحابية، مع مراعاة قصوى لخصوصية البيانات وجودة تجربة المستخدم العربية."
             )
             self.lbl_privacy_text.setText(
                 "يعمل تطبيق نَصّ بالكامل دون الحاجة إلى اتصال بالإنترنت بعد تثبيت المحرك وحزم اللغات.\n"
@@ -290,8 +309,9 @@ class AboutView(QWidget):
             )
         else:
             self.lbl_dev_bio.setText(
-                "NASS is crafted with rigorous software engineering standards to deliver a comprehensive, "
-                "smart, local-first open-source document extraction and OCR tool for Arabic and multilingual users."
+                "NASS is an advanced engineering desktop platform integrating Optical Character Recognition (OCR) "
+                "with native digital extraction across Office and PDF documents, including embedded images and LaTeX formulas. "
+                "It operates 100% locally with zero cloud dependencies, prioritizing user privacy and seamless Arabic UX."
             )
             self.lbl_privacy_text.setText(
                 "NASS operates entirely locally without requiring internet connectivity after engine setup.\n"

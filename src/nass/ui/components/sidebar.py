@@ -184,6 +184,31 @@ class SidebarWidget(QFrame):
         sc_layout.addWidget(self.status_box)
         layout.addWidget(status_container)
 
+        # 4. GitHub Project Repository Button at the bottom
+        repo_btn_container = QWidget()
+        repo_btn_container.setStyleSheet("background: transparent;")
+        rb_layout = QVBoxLayout(repo_btn_container)
+        rb_layout.setContentsMargins(12, 6, 12, 0)
+
+        self.btn_github_repo = QPushButton(tr("sidebar_btn_github_repo"))
+        self.btn_github_repo.setIcon(AppIcons.github("#E2E8F0"))
+        self.btn_github_repo.setIconSize(QSize(16, 16))
+        self.btn_github_repo.setCursor(Qt.PointingHandCursor)
+        self.btn_github_repo.setFixedHeight(34)
+        self.btn_github_repo.setStyleSheet(
+            "QPushButton { background-color: rgba(30, 41, 59, 0.7); color: #E2E8F0; "
+            "border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 6px; font-size: 11px; font-weight: 600; padding: 4px 8px; }"
+            "QPushButton:hover { background-color: rgba(51, 65, 85, 0.9); color: #FFFFFF; border-color: rgba(148, 163, 184, 0.4); }"
+        )
+        self.btn_github_repo.clicked.connect(self._open_project_repo)
+        rb_layout.addWidget(self.btn_github_repo)
+        layout.addWidget(repo_btn_container)
+
+    def _open_project_repo(self) -> None:
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+        QDesktopServices.openUrl(QUrl("https://github.com/IbrahimSalha25/NASS"))
+
     def retranslate_ui(self) -> None:
         """Retranslates all text and adjusts layout direction for active language."""
         is_rtl = I18n.is_rtl()
@@ -193,6 +218,8 @@ class SidebarWidget(QFrame):
         self.lbl_app_title.setText(tr("app_name"))
         self.lbl_app_slogan.setText(tr("app_slogan"))
         self.lbl_engine_title.setText(tr("engine_status_title"))
+        if hasattr(self, "btn_github_repo"):
+            self.btn_github_repo.setText(tr("sidebar_btn_github_repo"))
 
         for idx, (key, _) in enumerate(self.nav_keys):
             if idx < len(self.buttons):

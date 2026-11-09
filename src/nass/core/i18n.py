@@ -357,6 +357,42 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "ar": "مستند رقمي مباشر ({type})\nسيتم استخراج النصوص مباشرة وبسرعة فائقة.",
         "en": "Native digital document ({type})\nText will be extracted directly with high speed.",
     },
+    "extract_chk_native_text": {
+        "ar": "استخراج النصوص العادية المكتوبة",
+        "en": "Extract Native Written Text",
+    },
+    "extract_chk_images_ocr": {
+        "ar": "استخراج النصوص من الصور المضمنة (OCR)",
+        "en": "Extract Text from Embedded Images (OCR)",
+    },
+    "extract_tab_all_text": {
+        "ar": "كامل النص المستخرج",
+        "en": "All Extracted Text",
+    },
+    "extract_tab_native_text": {
+        "ar": "النصوص الأصلية",
+        "en": "Native Text",
+    },
+    "extract_tab_images_ocr": {
+        "ar": "نصوص الصور (OCR)",
+        "en": "Image OCR Text",
+    },
+    "extract_tab_images_list": {
+        "ar": "سجل الصور ({count})",
+        "en": "Images Log ({count})",
+    },
+    "extract_zoom_in": {
+        "ar": "تكبير المعاينة (+)",
+        "en": "Zoom In (+)",
+    },
+    "extract_zoom_out": {
+        "ar": "تصغير المعاينة (-)",
+        "en": "Zoom Out (-)",
+    },
+    "extract_zoom_reset": {
+        "ar": "إعادة ضبط الحجم",
+        "en": "Reset Zoom",
+    },
     "extract_preview_unavailable": {
         "ar": "معاينة بصرية غير متوفرة لهذا الملف.",
         "en": "Visual preview not available for this file.",
@@ -793,6 +829,418 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
     "batch_preview_dialog_title": {
         "ar": "معاينة نص الملف: {name}",
         "en": "File Text Preview: {name}",
+    },
+
+    # -------------------------------------------------------------
+    # Sidebar Extra
+    # -------------------------------------------------------------
+    "sidebar_btn_github_repo": {
+        "ar": "مستودع المشروع على GitHub",
+        "en": "Project GitHub Repository",
+    },
+
+    # -------------------------------------------------------------
+    # Extract View Drag & Drop Banner
+    # -------------------------------------------------------------
+    "extract_drop_banner_title": {
+        "ar": "اسحب وأفلت أي مستند أو صورة هنا مباشرة لمعاينته واستخراج نصوصه فوراً",
+        "en": "Drag & drop any document or image here to preview and extract text immediately",
+    },
+    "extract_drop_banner_sub": {
+        "ar": "يدعم PDF، Word (DOCX)، PowerPoint (PPTX)، Excel (XLSX)، والصور (PNG, JPG, TIFF) • محلي بالكامل وآمن 100%",
+        "en": "Supports PDF, Word (DOCX), PowerPoint (PPTX), Excel (XLSX), and Images • 100% Local & Confidential",
+    },
+
+    # -------------------------------------------------------------
+    # OCR Settings View Localization Keys
+    # -------------------------------------------------------------
+    "ocr_settings_title": {
+        "ar": "إعدادات محرك OCR وإدارة اللغات",
+        "en": "OCR Engine & Language Settings",
+    },
+    "ocr_settings_desc": {
+        "ar": "إدارة محرك Tesseract، تنزيل وتثبيت حزم اللغات، وتخصيص دقة وخصائص التعرف",
+        "en": "Manage Tesseract engine, download language packs, and customize recognition parameters",
+    },
+    "ocr_settings_btn_refresh": {
+        "ar": "إعادة فحص المحرك",
+        "en": "Recheck Engine",
+    },
+    "ocr_settings_tab_engine": {
+        "ar": "حالة المحرك والتثبيت",
+        "en": "Engine Status & Installation",
+    },
+    "ocr_settings_tab_languages": {
+        "ar": "إدارة حزم اللغات",
+        "en": "Language Packs Management",
+    },
+    "ocr_settings_tab_advanced": {
+        "ar": "خيارات التعرف المتقدمة",
+        "en": "Advanced Recognition Options",
+    },
+    "ocr_settings_tab_math": {
+        "ar": "محرك المعادلات الرياضية",
+        "en": "Mathematical Formulas Engine",
+    },
+    "ocr_settings_status_checking": {
+        "ar": "جاري التحقق من التثبيت...",
+        "en": "Checking installation status...",
+    },
+    "ocr_settings_status_ready": {
+        "ar": "محرك Tesseract مثبت وجاهز للاستخدام (الإصدار {version})",
+        "en": "Tesseract OCR is installed and ready to use (v{version})",
+    },
+    "ocr_settings_status_not_found": {
+        "ar": "محرك Tesseract غير مثبت على هذا الجهاز",
+        "en": "Tesseract engine is not installed on this system",
+    },
+    "ocr_settings_lbl_version": {
+        "ar": "إصدار Tesseract:",
+        "en": "Tesseract Version:",
+    },
+    "ocr_settings_lbl_exe_path": {
+        "ar": "مسار ملف التشغيل (tesseract.exe):",
+        "en": "Executable Path (tesseract.exe):",
+    },
+    "ocr_settings_lbl_tessdata": {
+        "ar": "مسار مجلد حزم اللغات (tessdata):",
+        "en": "Languages Folder (tessdata):",
+    },
+    "ocr_settings_lbl_pytesseract": {
+        "ar": "اتصال مكتبة Pytesseract:",
+        "en": "Pytesseract Connection:",
+    },
+    "ocr_settings_connected": {
+        "ar": "متصل بنجاح",
+        "en": "Connected Successfully",
+    },
+    "ocr_settings_not_connected": {
+        "ar": "غير متصل",
+        "en": "Not Connected",
+    },
+    "ocr_settings_btn_verify": {
+        "ar": "فحص التثبيت والتحقق",
+        "en": "Verify Installation",
+    },
+    "ocr_settings_btn_browse_exe": {
+        "ar": "اختيار مسار Tesseract يدوياً",
+        "en": "Browse Tesseract Path",
+    },
+    "ocr_settings_btn_official_download": {
+        "ar": "فتح صفحة التنزيل الرسمية",
+        "en": "Open Official Download Page",
+    },
+    "ocr_settings_btn_reset_paths": {
+        "ar": "إعادة الاكتشاف التلقائي",
+        "en": "Reset to Auto-Discovery",
+    },
+    "ocr_settings_grp_guide": {
+        "ar": "دليل تثبيت Tesseract OCR المعتمد لنظامك",
+        "en": "Official Tesseract Installation Guide for Your OS",
+    },
+    "ocr_settings_btn_open_installer": {
+        "ar": "تشغيل ملف التثبيت المحمّل (.exe)",
+        "en": "Launch Downloaded Installer (.exe)",
+    },
+    "ocr_settings_lbl_search_lang": {
+        "ar": "البحث في اللغات:",
+        "en": "Search Languages:",
+    },
+    "ocr_settings_placeholder_search_lang": {
+        "ar": "ابحث باسم اللغة أو الرمز (مثل: عربية، eng، fra)...",
+        "en": "Search by language name or code (e.g., ara, English, fra)...",
+    },
+    "ocr_settings_title_installed": {
+        "ar": "اللغات المثبتة حالياً في مجلد tessdata:",
+        "en": "Languages currently installed in tessdata:",
+    },
+    "ocr_settings_col_lang_code": {
+        "ar": "رمز اللغة",
+        "en": "Language Code",
+    },
+    "ocr_settings_col_lang_name": {
+        "ar": "اسم اللغة",
+        "en": "Language Name",
+    },
+    "ocr_settings_col_lang_size": {
+        "ar": "الحجم على القرص",
+        "en": "Disk Size",
+    },
+    "ocr_settings_col_actions": {
+        "ar": "إجراءات",
+        "en": "Actions",
+    },
+    "ocr_settings_title_catalog": {
+        "ar": "كتالوج اللغات المتاحة للتنزيل (المستودع الرسمي tessdata_fast):",
+        "en": "Catalog of available languages (Official tessdata_fast repository):",
+    },
+    "ocr_settings_col_status": {
+        "ar": "الحالة",
+        "en": "Status",
+    },
+    "ocr_settings_col_download": {
+        "ar": "تنزيل وتثبيت",
+        "en": "Download & Install",
+    },
+    "ocr_settings_status_installed": {
+        "ar": "مثبتة بالفعل",
+        "en": "Already Installed",
+    },
+    "ocr_settings_status_available": {
+        "ar": "متاحة للتنزيل",
+        "en": "Available for Download",
+    },
+    "ocr_settings_btn_delete": {
+        "ar": "حذف",
+        "en": "Delete",
+    },
+    "ocr_settings_btn_installed": {
+        "ar": "مثبتة",
+        "en": "Installed",
+    },
+    "ocr_settings_btn_download": {
+        "ar": "تنزيل وتثبيت",
+        "en": "Download & Install",
+    },
+    "ocr_settings_grp_basic": {
+        "ar": "الإعدادات الأساسية للتعرف على النصوص",
+        "en": "Basic OCR Recognition Settings",
+    },
+    "ocr_settings_lbl_psm": {
+        "ar": "وضع تقسيم الصفحة (Page Segmentation Mode - PSM):",
+        "en": "Page Segmentation Mode (PSM):",
+    },
+    "ocr_settings_lbl_psm_desc": {
+        "ar": "يحدد كيف يحلل المحرك تخطيط الصفحة وتوزيع الأعمدة والأسطر.",
+        "en": "Determines how the engine analyzes page layout, columns, and lines.",
+    },
+    "ocr_settings_psm_3": {
+        "ar": "3: تقسيم تلقائي بالكامل (موصى به لمعظم المستندات)",
+        "en": "3: Fully automatic page segmentation (Recommended)",
+    },
+    "ocr_settings_psm_1": {
+        "ar": "1: تلقائي مع كشف اتجاه الصفحة وتدويرها (OSD)",
+        "en": "1: Automatic with Orientation & Script Detection (OSD)",
+    },
+    "ocr_settings_psm_4": {
+        "ar": "4: عمود نصي واحد بأحجام خطوط متغيرة",
+        "en": "4: Single column of text of variable sizes",
+    },
+    "ocr_settings_psm_6": {
+        "ar": "6: كتلة نصية موحدة ومستمرة (فقرات ومقالات)",
+        "en": "6: Single uniform block of text (paragraphs)",
+    },
+    "ocr_settings_psm_7": {
+        "ar": "7: سطر نصي واحد فقط",
+        "en": "7: Treat image as a single text line",
+    },
+    "ocr_settings_psm_11": {
+        "ar": "11: نصوص متناثرة في مواضع مختلفة",
+        "en": "11: Sparse text find as much text as possible",
+    },
+    "ocr_settings_lbl_oem": {
+        "ar": "محرك التعرف (OCR Engine Mode - OEM):",
+        "en": "OCR Engine Mode (OEM):",
+    },
+    "ocr_settings_lbl_oem_desc": {
+        "ar": "يتحكم في خوارزمية استخراج الرموز من الصور.",
+        "en": "Controls character recognition engine algorithms.",
+    },
+    "ocr_settings_oem_3": {
+        "ar": "3: افتراضي (LSTM للشبكات العصبية + المحرك الكلاسيكي)",
+        "en": "3: Default (Neural nets LSTM + Legacy engine)",
+    },
+    "ocr_settings_oem_1": {
+        "ar": "1: التعلم العميق والشبكات العصبية فقط (LSTM - دقة أعلى)",
+        "en": "1: Neural nets LSTM only (Higher accuracy)",
+    },
+    "ocr_settings_oem_0": {
+        "ar": "0: المحرك التقليدي القديم فقط (Legacy)",
+        "en": "0: Legacy engine only",
+    },
+    "ocr_settings_lbl_filters": {
+        "ar": "فلاتر المعالجة المسبقة للصور:",
+        "en": "Image Pre-processing Filters:",
+    },
+    "ocr_settings_chk_gray": {
+        "ar": "تحويل الصور إلى تدرج رمادي (Grayscale) لإزالة الألوان الخلفية",
+        "en": "Convert images to Grayscale to remove colored backgrounds",
+    },
+    "ocr_settings_chk_contrast": {
+        "ar": "تحسين التباين (Contrast) لإبراز النصوص الباهتة",
+        "en": "Enhance Contrast to accentuate faint characters",
+    },
+    "ocr_settings_chk_denoise": {
+        "ar": "إزالة الضوضاء والتشويش الرقمي باعتدال",
+        "en": "Moderate digital denoising to clean scanned artifacts",
+    },
+    "ocr_settings_chk_threshold": {
+        "ar": "العتبة الثنائية (Thresholding) لفصل النص عن الخلفية تماماً",
+        "en": "Otsu Adaptive Binarization to cleanly separate text",
+    },
+    "ocr_settings_chk_deskew": {
+        "ar": "تصحيح ميلان الصفحة أفقياً (Deskewing)",
+        "en": "Automatic Deskewing to straighten rotated pages",
+    },
+    "ocr_settings_grp_custom": {
+        "ar": "إعدادات Tesseract الإضافية المخصصة",
+        "en": "Custom Tesseract Parameters",
+    },
+    "ocr_settings_lbl_custom": {
+        "ar": "معلمات إضافية (Custom Tesseract Config):",
+        "en": "Custom Config Flags:",
+    },
+    "ocr_settings_btn_save_adv": {
+        "ar": "حفظ الإعدادات الحالية",
+        "en": "Save Current Settings",
+    },
+    "ocr_settings_btn_reset_adv": {
+        "ar": "استعادة الإعدادات الافتراضية",
+        "en": "Restore Defaults",
+    },
+    "ocr_settings_math_title": {
+        "ar": "نظام التعرف على المعادلات الرياضية (LaTeX)",
+        "en": "Mathematical Formulas Recognition (LaTeX)",
+    },
+    "ocr_settings_chk_math": {
+        "ar": "تفعيل التعرف على المعادلات الرياضية واستخراج صيغ LaTeX",
+        "en": "Enable mathematical formulas recognition and LaTeX export",
+    },
+    "ocr_settings_lbl_math_engine": {
+        "ar": "المحرك الرياضي المفضل:",
+        "en": "Preferred Math Engine:",
+    },
+    "ocr_settings_math_builtin": {
+        "ar": "المكتشف الرياضي المدمج (خفيف وسريع، لا يحتاج مكتبات إضافية)",
+        "en": "Built-in Math Detector (Fast & lightweight, zero extra dependencies)",
+    },
+    "ocr_settings_math_pix2tex": {
+        "ar": "محرك pix2tex بالتعلم العميق (يتطلب PyTorch ونماذج ثقيلة)",
+        "en": "Deep learning pix2tex engine (Requires PyTorch and weights)",
+    },
+    "ocr_settings_pix_checking": {
+        "ar": "جاري التحقق من محرك pix2tex...",
+        "en": "Checking pix2tex status...",
+    },
+    "ocr_settings_pix_ready": {
+        "ar": "محرك pix2tex مثبت وجاهز للعمل.",
+        "en": "pix2tex engine is installed and ready.",
+    },
+    "ocr_settings_pix_missing": {
+        "ar": "محرك pix2tex غير مثبت (إضافة اختيارية). المكتشف المدمج مفعّل ونشط.",
+        "en": "pix2tex is not installed (optional). Built-in detector is active.",
+    },
+    "ocr_settings_pix_desc": {
+        "ar": "المحرك الرياضي المدمج يعمل تلقائياً وبدقة ممتازة للمعادلات والصيغ.",
+        "en": "Built-in detector functions automatically with high accuracy for equations.",
+    },
+    "ocr_settings_pop_dl_in_progress": {
+        "ar": "هناك عملية تنزيل جارية حالياً، يرجى الانتظار حتى اكتمالها.",
+        "en": "A download is already in progress. Please wait for completion.",
+    },
+    "ocr_settings_pop_dl_starting": {
+        "ar": "جاري تنزيل حزمة اللغة '{code}' من المستودع الرسمي...",
+        "en": "Downloading language pack '{code}' from official repository...",
+    },
+    "ocr_settings_pop_dl_progress": {
+        "ar": "تم تنزيل {done:.1f} من {total:.1f} ميجابايت ({pct}%)",
+        "en": "Downloaded {done:.1f} of {total:.1f} MB ({pct}%)",
+    },
+    "ocr_settings_pop_dl_success_title": {
+        "ar": "نجاح التنزيل",
+        "en": "Download Successful",
+    },
+    "ocr_settings_pop_dl_fail_title": {
+        "ar": "فشل التنزيل",
+        "en": "Download Failed",
+    },
+    "ocr_settings_pop_delete_title": {
+        "ar": "تأكيد حذف حزمة لغة",
+        "en": "Confirm Language Pack Deletion",
+    },
+    "ocr_settings_pop_delete_msg": {
+        "ar": "هل أنت متأكد من رغبتك في حذف حزمة اللغة '{code}' من النظام؟\nلن تتمكن من استخدامها حتى تقوم بتنزيلها مجدداً.",
+        "en": "Are you sure you want to delete language pack '{code}'?\nYou will need to download it again to use it.",
+    },
+    "ocr_settings_pop_deleted_title": {
+        "ar": "تم الحذف",
+        "en": "Deleted",
+    },
+    "ocr_settings_pop_cant_delete_title": {
+        "ar": "تعذر الحذف",
+        "en": "Could Not Delete",
+    },
+    "ocr_settings_pop_verify_title": {
+        "ar": "سلامة المحرك",
+        "en": "Engine Integrity",
+    },
+    "ocr_settings_pop_verify_warn_title": {
+        "ar": "تنبيه التحقق",
+        "en": "Verification Notice",
+    },
+    "ocr_settings_pop_browse_exe_title": {
+        "ar": "تحديد ملف تشغيل tesseract.exe",
+        "en": "Select tesseract.exe executable",
+    },
+    "ocr_settings_pop_browse_exe_filter": {
+        "ar": "ملفات تشغيل Tesseract (tesseract.exe tesseract);;جميع الملفات (*.*)",
+        "en": "Tesseract Executable (tesseract.exe tesseract);;All Files (*.*)",
+    },
+    "ocr_settings_pop_path_set_title": {
+        "ar": "نجاح التحديد",
+        "en": "Path Configured",
+    },
+    "ocr_settings_pop_invalid_path_title": {
+        "ar": "مسار غير صالح",
+        "en": "Invalid Path",
+    },
+    "ocr_settings_pop_reset_discovery_title": {
+        "ar": "إعادة الضبط",
+        "en": "Reset",
+    },
+    "ocr_settings_pop_reset_discovery_msg": {
+        "ar": "تمت استعادة الاكتشاف التلقائي لمسارات النظام.",
+        "en": "Restored automatic system discovery paths.",
+    },
+    "ocr_settings_pop_open_installer_title": {
+        "ar": "اختيار ملف مثبت Tesseract المحمّل",
+        "en": "Select Downloaded Tesseract Installer",
+    },
+    "ocr_settings_pop_open_installer_filter": {
+        "ar": "ملفات التثبيت (*.exe *.msi *.pkg *.dmg);;جميع الملفات (*.*)",
+        "en": "Installer Files (*.exe *.msi *.pkg *.dmg);;All Files (*.*)",
+    },
+    "ocr_settings_pop_confirm_run_installer_title": {
+        "ar": "تأكيد تشغيل المثبت",
+        "en": "Confirm Running Installer",
+    },
+    "ocr_settings_pop_confirm_run_installer_msg": {
+        "ar": "هل توافق على تشغيل ملف التثبيت التالي:\n{path}؟",
+        "en": "Do you want to launch the following installer:\n{path}?",
+    },
+    "ocr_settings_pop_cant_run_installer_title": {
+        "ar": "تعذر فتح الملف",
+        "en": "Cannot Launch File",
+    },
+    "ocr_settings_pop_cant_run_installer_msg": {
+        "ar": "حدث خطأ أثناء تشغيل المثبت: {err}",
+        "en": "Error while launching installer: {err}",
+    },
+    "ocr_settings_pop_save_adv_title": {
+        "ar": "حفظ الإعدادات",
+        "en": "Settings Saved",
+    },
+    "ocr_settings_pop_save_adv_msg": {
+        "ar": "تم حفظ إعدادات التعرف المتقدمة بنجاح.",
+        "en": "Advanced recognition settings saved successfully.",
+    },
+    "ocr_settings_pop_reset_adv_title": {
+        "ar": "استعادة الافتراضي",
+        "en": "Restore Defaults",
+    },
+    "ocr_settings_pop_reset_adv_msg": {
+        "ar": "تمت استعادة كافة إعدادات التعرف الافتراضية.",
+        "en": "All recognition default settings restored.",
     },
 }
 
