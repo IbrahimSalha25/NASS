@@ -2,9 +2,9 @@ name: CI Test Suite
 
 on:
   push:
-    branches: [ main, "feature/**", "refactor/**" ]
+    branches: [ main, develop, "feature/**", "refactor/**" ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   test:
@@ -29,13 +29,13 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y tesseract-ocr tesseract-ocr-ara tesseract-ocr-eng libgl1 libegl1
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-ara tesseract-ocr-eng libgl1 libegl1 libxkbcommon-x11-0 xvfb
 
       - name: Install system Tesseract (Windows)
         if: runner.os == 'Windows'
         run: |
-          choco install tesseract --version=5.3.3
-          echo "C:\Program Files\Tesseract-OCR" >> $GITHUB_PATH
+          choco install tesseract -y
+          echo "C:\Program Files\Tesseract-OCR" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Install Python dependencies
         run: |
@@ -43,6 +43,14 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov
 
-      - name: Run Test Suite with Pytest
+      - name: Run Test Suite with Pytest (Linux)
+        if: runner.os == 'Linux'
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          pytest tests
+
+      - name: Run Test Suite with Pytest (Windows)
+        if: runner.os == 'Windows'
         run: |
           pytest tests
